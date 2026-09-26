@@ -1,0 +1,28 @@
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+build/bin/
+
+# Wails
+build/bin/
+frontend/dist/
+
+# Node
+node_modules/
+frontend/node_modules/
+*.log
+npm-debug.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+Thumbs.db
+.DS_Store
