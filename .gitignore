@@ -1,22 +1,23 @@
 # Go
 *.exe
 *.exe~
-*.dll
-*.so
-*.dylib
 *.test
 *.out
-build/bin/
 
-# Wails
+# Wails 构建产物
 build/bin/
 frontend/dist/
+# icon.ico 由 wails build 从 build/appicon.png 生成，勿提交（避免缓存旧图标）
+build/windows/icon.ico
 
 # Node
 node_modules/
-frontend/node_modules/
 *.log
 npm-debug.log*
+
+# 临时文件
+_tmp_*
+*.bak
 
 # IDE
 .idea/
