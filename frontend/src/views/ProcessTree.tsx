@@ -7,12 +7,12 @@ import { usePrefs } from '../prefs'
 interface Row { p: ProcessInfo; a: Agg; depth: number; kidCount: number }
 
 const ROW_H = 34
-const COLS: { key: SortKey; label: string }[] = [
+const COLS: { key: SortKey; label: string; title?: string }[] = [
   { key: 'cpu', label: 'CPU %' },
   { key: 'mem', label: '内存' },
   { key: 'gpu', label: 'GPU %' },
   { key: 'vram', label: '显存' },
-  { key: 'disk', label: '磁盘' },
+  { key: 'disk', label: 'I/O', title: '读写 I/O 字节速率（进程 IO 计数口径，含共享内存/管道等非磁盘写入，浏览器类进程会明显偏高）' },
 ]
 
 function hashColor(name: string): string {
@@ -28,7 +28,15 @@ export function ProcessTree({ processes }: { processes: ProcessInfo[] }) {
   const [expanded, setExpanded] = useState<Set<number>>(new Set())
   const [scrollTop, setScrollTop] = useState(0)
   const [viewH, setViewH] = useState(400)
+  const [paused, setPaused] = useState(false)
+  const frozenRef = useRef<ProcessInfo[] | null>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
+
+  const togglePause = () => {
+    if (!paused) frozenRef.current = processes // 冻结当前快照
+    setPaused(p => !p)
+  }
+  const dataSource = paused && frozenRef.current ? frozenRef.current : processes
 
   useEffect(() => {
     const el = bodyRef.current
@@ -52,7 +60,7 @@ export function ProcessTree({ processes }: { processes: ProcessInfo[] }) {
     }
     walk(forest, 0)
     return rows
-  }, [processes, sortKey, sortAsc, expanded])
+  }, [dataSource, sortKey, sortAsc, expanded])
 
   // 各列最大值（进度条基准）
   const maxes = useMemo(() => {
@@ -84,15 +92,20 @@ export function ProcessTree({ processes }: { processes: ProcessInfo[] }) {
     <div className="view tree-panel glass">
       <div className="tree-toolbar">
         <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--txt-1)' }}>进程</span>
-        <span style={{ fontSize: 11, color: 'var(--txt-2)' }}>{processes.length} 个进程 · 显示 {rows.length} 行</span>
+        <span style={{ fontSize: 11, color: 'var(--txt-2)' }}>{dataSource.length} 个进程 · 显示 {rows.length} 行</span>
+        {paused && <span style={{ fontSize: 11, color: '#fbbf24' }}>⏸ 已暂停 · 数据已冻结</span>}
         <span className="spacer" />
         <span style={{ fontSize: 11, color: 'var(--txt-2)' }}>点击 ▸ 展开子进程 · 列头排序 · 双击行展开</span>
+        <button className={'chip' + (paused ? ' on' : '')} onClick={togglePause} title="冻结当前列表，方便查看某个进程">
+          {paused ? '▶ 继续' : '⏸ 暂停'}
+        </button>
       </div>
       <div className="tree-head">
         <div className="h on">名称</div>
         {COLS.map(c =>
           <div key={c.key}
             className={'h' + (sortKey === c.key ? ' on' : '')}
+            title={c.title}
             onClick={() => { if (sortKey === c.key) setSortAsc(v => !v); else { setSortKey(c.key); setSortAsc(false) } }}>
             {c.label}{sortKey === c.key ? (sortAsc ? ' ↑' : ' ↓') : ''}
           </div>)}

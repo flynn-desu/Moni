@@ -11,7 +11,7 @@ const METRICS: { key: SortKey; label: string }[] = [
   { key: 'mem', label: '内存' },
   { key: 'gpu', label: 'GPU' },
   { key: 'vram', label: '显存' },
-  { key: 'disk', label: '磁盘' },
+  { key: 'disk', label: 'I/O' },
 ]
 
 // 纯色方案：固定色相；多彩方案：色相按面积排名展开，相邻矩形颜色区分明显

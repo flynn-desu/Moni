@@ -21,6 +21,16 @@ export function buildForest(processes: ProcessInfo[]): ProcNode[] {
     if (parent) parent.kids.push(node)
     else roots.push(node)
   }
+  // explorer.exe 是 shell：从任务栏/开始菜单启动的应用都挂在它下面，
+  // 展示时把它剪掉，让应用进程直接出现在顶层（与任务管理器按应用浏览的习惯一致）
+  const lifted: ProcNode[] = []
+  const kept: ProcNode[] = []
+  for (const r of roots) {
+    if (SHELL_PROCS.has(r.p.name.toLowerCase())) lifted.push(...r.kids)
+    else kept.push(r)
+  }
+  roots.length = 0
+  roots.push(...kept, ...lifted)
   const addUp = (n: ProcNode): void => {
     for (const k of n.kids) {
       addUp(k)
@@ -34,6 +44,9 @@ export function buildForest(processes: ProcessInfo[]): ProcNode[] {
   for (const r of roots) addUp(r)
   return roots
 }
+
+// 视为 shell 而直接提升子进程到顶层的进程名
+const SHELL_PROCS = new Set(['explorer.exe'])
 
 export type SortKey = 'cpu' | 'mem' | 'gpu' | 'vram' | 'disk'
 
