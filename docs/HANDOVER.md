@@ -124,7 +124,7 @@ go build -o harness.exe ./cmd/harness && ./harness.exe -n 9999   # 持续输出�
 4. **#8 树图**：squarified（Bruls et al.，纯像素面积口径），指标可切（CPU/内存/GPU/显存/磁盘），面积∝占用、按占比着色，点击有子进程的矩形下钻、面包屑逐级返回、悬浮 tooltip；配色 6 套（极光蓝/晨雾青/极简灰 3 纯色 + 彩虹/日落/马卡龙 3 多彩），自绘玻璃下拉选择（带色板 swatch）
 5. **#9 打磨**：blur/最小化 → `SetThrottled(true)` 降至 5s、恢复原速；设置全部持久化 JSON；明暗主题（CSS 变量整体切换，浅色下图标/轨道/主色有专属配色）；视图切换淡入动画；主机页（单卡片列表 + 手写 SVG 硬件图标，注册表读 CPU 型号/系统版本）；状态栏显示 Moni 自身 CPU/内存（NtQSI 自采）；`wails build` 出 `build/bin/Moni.exe`（12MB）
 
-**分享分发**：单 exe 即可（前端已 embed、静态链接、配置写 %APPDATA%，无需安装器/管理员）。构建命令 `wails build -webview2 embed -ldflags "-s -w"`——`embed` 把微软 WebView2 引导器内嵌进 exe（目标机缺运行时则自动引导安装一次，需联网）；`-s -w` 裁剪符号减体积。图标源文件在 `logo.png`（仓库根目录，用户绘制），栅格化命令见下方，改图标后覆盖 `build/appicon.png`（1024×1024）重新 build 即可：
+**分享分发**：单 exe 即可（前端已 embed、静态链接、配置写 %APPDATA%，无需安装器/管理员）。构建命令 `wails build -webview2 embed -ldflags "-s -w"`——`embed` 把微软 WebView2 引导器内嵌进 exe（目标机缺运行时则自动引导安装一次，需联网）；`-s -w` 裁剪符号减体积。图标源文件在 `logo.png`（仓库根目录，用户绘制）；背景模式/磨砂程度/壁纸见 config.json 的 bgMode/blur/wallpaperPath，栅格化命令见下方，改图标后覆盖 `build/appicon.png`（1024×1024）重新 build 即可：
 ```
 logo.png 居中裁方缩放至 1024×1024 后覆盖 build/appicon.png
 ```

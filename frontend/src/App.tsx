@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Point, ProcessInfo, Sample } from './types'
-import type { MapTheme, NetUnit, StorageUnit, UiMode } from './format'
-import { PrefsProvider, MODE_LABELS, NET_LABELS, STORAGE_LABELS, type Prefs } from './prefs'
+import type { BgMode, MapTheme, NetUnit, StorageUnit, UiMode } from './format'
+import { PrefsProvider, BG_LABELS, MODE_LABELS, NET_LABELS, STORAGE_LABELS, type Prefs } from './prefs'
 import { fmtStorage } from './format'
 import { driver } from './driver'
 import { Dashboard } from './views/Dashboard'
@@ -26,7 +26,8 @@ export default function App() {
   const [view, setView] = useState<ViewKey>('dash')
   const [sample, setSample] = useState<Sample | null>(null)
   const [history, setHistory] = useState<Point[]>([])
-  const [prefs, setPrefs] = useState<Prefs>({ mode: 'dark', storage: 'auto', net: 'auto', theme: 'aurora' })
+  const [prefs, setPrefs] = useState<Prefs>({ mode: 'dark', bgMode: 'solid', blur: 30, storage: 'auto', net: 'auto', theme: 'aurora' })
+  const [wallpaper, setWallpaper] = useState('')
   const [intervalMs, setIntervalMs] = useState(1000)
   const [alwaysOnTop, setAlwaysOnTop] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -48,9 +49,10 @@ export default function App() {
       if (disposed) return
       setIntervalMs(c.intervalMs)
       setAlwaysOnTop(c.alwaysOnTop)
-      setPrefs({ mode: c.uiTheme, storage: c.storageUnit, net: c.netUnit, theme: c.mapTheme })
+      setPrefs({ mode: c.uiTheme, bgMode: c.bgMode, blur: c.blur, storage: c.storageUnit, net: c.netUnit, theme: c.mapTheme })
       if (c.alwaysOnTop) driver.setAlwaysOnTop(true)
     })
+    driver.getWallpaperData().then(w => { if (!disposed) setWallpaper(w) })
     driver.getHistory().then(h => {
       if (disposed) return
       histRef.current = h
@@ -135,13 +137,48 @@ export default function App() {
     document.body.classList.toggle('light', prefs.mode === 'light')
   }, [prefs.mode])
 
+  // 卡片磨砂程度：写入全局 CSS 变量
+  useEffect(() => {
+    document.documentElement.style.setProperty('--blur', prefs.blur + 'px')
+  }, [prefs.blur])
+
+  const applyBgMode = (mode: BgMode) => {
+    if (mode === 'image') { void pickWallpaper(); return }
+    const next: Prefs = { ...prefsRef.current, bgMode: mode }
+    prefsRef.current = next
+    setPrefs(next)
+    driver.setBgMode(mode)
+  }
+  const applyBlur = (px: number) => {
+    const next: Prefs = { ...prefsRef.current, blur: px }
+    prefsRef.current = next
+    setPrefs(next)
+    driver.setBlur(px)
+  }
+  const pickWallpaper = async () => {
+    const data = await driver.selectWallpaper()
+    if (!data) return
+    const next: Prefs = { ...prefsRef.current, bgMode: 'image' }
+    prefsRef.current = next
+    setPrefs(next)
+    setWallpaper(data)
+  }
+  const clearWallpaper = () => {
+    const next: Prefs = { ...prefsRef.current, bgMode: 'solid' }
+    prefsRef.current = next
+    setPrefs(next)
+    setWallpaper('')
+    driver.clearWallpaper()
+  }
+
   const procs: ProcessInfo[] = sample?.processes ?? []
   const intervalLabel = intervalMs >= 1000 ? `${intervalMs / 1000}s` : `${intervalMs}ms`
 
   return (
     <PrefsProvider value={prefs}>
       <div className="app">
-        <div className="aurora"><i /><i /><i /></div>
+        {prefs.bgMode === 'aurora' && <div className="aurora"><i /><i /><i /></div>}
+      {prefs.bgMode === 'image' && wallpaper && <div className="wallpaper" style={{ backgroundImage: `url(${wallpaper})` }} />}
         <header className="topbar">
           <div className="brand">Moni <small>LIQUID MONITOR</small></div>
           <span className="spacer" />
@@ -194,6 +231,27 @@ export default function App() {
                     <button key={m.key} className={'chip' + (prefs.mode === m.key ? ' on' : '')}
                       onClick={() => applyMode(m.key)}>{m.label}</button>)}
                 </div>
+              </div>
+              <div className="set-row">
+                <div className="lab">背景<small>纯色为默认；氛围光为动态光斑</small></div>
+                <div className="chips">
+                  {BG_LABELS.map(b =>
+                    <button key={b.key} className={'chip' + (prefs.bgMode === b.key ? ' on' : '')}
+                      onClick={() => applyBgMode(b.key)}>{b.label}</button>)}
+                </div>
+              </div>
+              {prefs.bgMode === 'image' &&
+                <div className="set-row">
+                  <div className="lab">壁纸图片<small>已启用自定义壁纸</small></div>
+                  <div className="chips">
+                    <button className="chip" onClick={() => void pickWallpaper()}>更换图片…</button>
+                    <button className="chip" onClick={clearWallpaper}>清除</button>
+                  </div>
+                </div>}
+              <div className="set-row">
+                <div className="lab">磨砂程度<small>卡片玻璃模糊半径 {prefs.blur}px</small></div>
+                <input type="range" min={0} max={40} step={2} value={prefs.blur}
+                  onChange={e => applyBlur(+e.target.value)} className="slider" />
               </div>
               <div className="set-row">
                 <div className="lab">存储单位<small>容量类数值（内存/显存）</small></div>

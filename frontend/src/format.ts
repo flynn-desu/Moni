@@ -2,6 +2,7 @@ export type StorageUnit = 'auto' | 'MB' | 'GB'
 export type NetUnit = 'auto' | 'KB' | 'MB' | 'GB'
 export type MapTheme = 'aurora' | 'teal' | 'mono' | 'rainbow' | 'sunset' | 'candy'
 export type UiMode = 'dark' | 'light'
+export type BgMode = 'solid' | 'aurora' | 'image'
 
 // 偏好上下文默认值
 export const DEFAULT_PREFS = { storage: 'auto', net: 'auto', theme: 'aurora' } as const

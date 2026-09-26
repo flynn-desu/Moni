@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -116,6 +117,66 @@ func (a *App) SetUiTheme(theme string) {
 	}
 	a.cfg.UiTheme = theme
 	a.cfg.Save()
+}
+
+// SetBgMode 设置背景模式（solid|aurora|image）并持久化。
+func (a *App) SetBgMode(mode string) {
+	if !config.ValidBgMode(mode) {
+		return
+	}
+	a.cfg.BgMode = mode
+	a.cfg.Save()
+}
+
+// SetBlur 设置卡片毛玻璃模糊半径（0-40px）并持久化。
+func (a *App) SetBlur(px int) {
+	if px < 0 {
+		px = 0
+	}
+	if px > 40 {
+		px = 40
+	}
+	a.cfg.Blur = px
+	a.cfg.Save()
+}
+
+// SelectWallpaper 弹出文件选择框让用户挑选壁纸，复制到配置目录、
+// 切换背景模式为图片并持久化；返回壁纸 data URL（取消返回空串）。
+func (a *App) SelectWallpaper() string {
+	path, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
+		Title: "选择壁纸图片",
+		Filters: []runtime.FileFilter{
+			{DisplayName: "图片 (*.png;*.jpg;*.jpeg;*.webp;*.bmp)", Pattern: "*.png;*.jpg;*.jpeg;*.webp;*.bmp"},
+		},
+	})
+	if err != nil || path == "" {
+		return ""
+	}
+	dst, err := config.SaveWallpaper(path)
+	if err != nil {
+		return ""
+	}
+	a.cfg.WallpaperPath = dst
+	a.cfg.BgMode = "image"
+	a.cfg.Save()
+	return config.WallpaperData(dst)
+}
+
+// ClearWallpaper 清除自定义壁纸，背景回到纯色并持久化。
+func (a *App) ClearWallpaper() {
+	if a.cfg.WallpaperPath != "" {
+		_ = os.Remove(a.cfg.WallpaperPath)
+	}
+	a.cfg.WallpaperPath = ""
+	if a.cfg.BgMode == "image" {
+		a.cfg.BgMode = "solid"
+	}
+	a.cfg.Save()
+}
+
+// GetWallpaperData 返回当前壁纸的 data URL（无壁纸为空串）。
+func (a *App) GetWallpaperData() string {
+	return config.WallpaperData(a.cfg.WallpaperPath)
 }
 
 // GetHostInfo 返回主机静态信息（CPU/显卡/内存/系统，启动后固定）。

@@ -1,5 +1,5 @@
 // 驱动层：有 Wails 后端时走绑定与事件；纯浏览器（vite dev 调试）时用 Mock 数据。
-import type { Sample, Point, AppConfig, HostInfo, NetUnit, StorageUnit, UiMode } from './types'
+import type { Sample, Point, AppConfig, HostInfo, NetUnit, StorageUnit, UiMode, BgMode } from './types'
 
 export interface Driver {
   getHistory(): Promise<Point[]>
@@ -9,6 +9,11 @@ export interface Driver {
   setUnits(storage: StorageUnit, net: NetUnit): Promise<void>
   setMapTheme(theme: string): Promise<void>
   setUiTheme(mode: UiMode): Promise<void>
+  setBgMode(mode: BgMode): Promise<void>
+  setBlur(px: number): Promise<void>
+  selectWallpaper(): Promise<string>
+  clearWallpaper(): Promise<void>
+  getWallpaperData(): Promise<string>
   getHostInfo(): Promise<HostInfo>
   setAlwaysOnTop(on: boolean): void
   onSample(cb: (s: Sample) => void): () => void
@@ -28,6 +33,11 @@ function wailsDriver(): Driver {
     async setUnits(storage, net) { await (await bindings()).SetUnits(storage, net) },
     async setMapTheme(theme) { await (await bindings()).SetMapTheme(theme) },
     async setUiTheme(mode) { await (await bindings()).SetUiTheme(mode) },
+    async setBgMode(mode) { await (await bindings()).SetBgMode(mode) },
+    async setBlur(px) { await (await bindings()).SetBlur(px) },
+    async selectWallpaper() { return (await bindings()).SelectWallpaper() },
+    async clearWallpaper() { await (await bindings()).ClearWallpaper() },
+    async getWallpaperData() { return (await bindings()).GetWallpaperData() },
     async getHostInfo() { return (await bindings()).GetHostInfo() },
     setAlwaysOnTop(on) { runtime().then(r => r.WindowSetAlwaysOnTop(on)) },
     onSample(cb) {
@@ -82,7 +92,7 @@ const MOCK_TREE: MockProc[] = (() => {
 function mockDriver(): Driver {
   let interval = 1000
   let throttled = false
-  const cfg: AppConfig = { intervalMs: 1000, alwaysOnTop: false, storageUnit: 'auto', netUnit: 'auto', mapTheme: 'aurora', uiTheme: 'dark' }
+  const cfg: AppConfig = { intervalMs: 1000, alwaysOnTop: false, storageUnit: 'auto', netUnit: 'auto', mapTheme: 'aurora', uiTheme: 'dark', bgMode: 'solid', blur: 30 }
   const ring: Point[] = []
   let subs: ((s: Sample) => void)[] = []
   let timer: ReturnType<typeof setTimeout> | null = null
@@ -178,6 +188,11 @@ function mockDriver(): Driver {
     async setUnits(storage, net) { cfg.storageUnit = storage; cfg.netUnit = net },
     async setMapTheme(theme) { cfg.mapTheme = theme as AppConfig['mapTheme'] },
     async setUiTheme(mode) { cfg.uiTheme = mode },
+    async setBgMode(mode) { cfg.bgMode = mode },
+    async setBlur(px) { cfg.blur = px },
+    async selectWallpaper() { return '' },
+    async clearWallpaper() { cfg.bgMode = 'solid' },
+    async getWallpaperData() { return '' },
     async getHostInfo() { return MOCK_HOST },
     setAlwaysOnTop() {},
     onSample(cb) {

@@ -1,6 +1,6 @@
 // 与后端 types.go / store.go 的 JSON 契约保持一致
-import type { MapTheme, NetUnit, StorageUnit, UiMode } from './format'
-export type { MapTheme, NetUnit, StorageUnit, UiMode }
+import type { BgMode, MapTheme, NetUnit, StorageUnit, UiMode } from './format'
+export type { BgMode, MapTheme, NetUnit, StorageUnit, UiMode }
 
 export interface CPUSys { usedPercent: number; cores: number }
 export interface MemSys { total: number; used: number; usedPercent: number; commitTotal: number; commitLimit: number }
@@ -66,6 +66,8 @@ export interface AppConfig {
   netUnit: NetUnit
   mapTheme: MapTheme
   uiTheme: UiMode
+  bgMode: BgMode
+  blur: number
 }
 
 // store.Point 历史聚合点

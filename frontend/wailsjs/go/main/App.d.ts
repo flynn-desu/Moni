@@ -4,11 +4,21 @@ import {config} from '../models';
 import {store} from '../models';
 import {collector} from '../models';
 
+export function ClearWallpaper():Promise<void>;
+
 export function GetConfig():Promise<config.Config>;
 
 export function GetHistory():Promise<Array<store.Point>>;
 
 export function GetHostInfo():Promise<collector.HostInfo>;
+
+export function GetWallpaperData():Promise<string>;
+
+export function SelectWallpaper():Promise<string>;
+
+export function SetBgMode(arg1:string):Promise<void>;
+
+export function SetBlur(arg1:number):Promise<void>;
 
 export function SetInterval(arg1:number):Promise<void>;
 

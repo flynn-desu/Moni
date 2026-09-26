@@ -1,15 +1,17 @@
 // 显示偏好上下文：明暗主题、单位模式与树图配色，全应用共享
 import { createContext, useContext } from 'react'
-import type { MapTheme, NetUnit, StorageUnit, UiMode } from './format'
+import type { BgMode, MapTheme, NetUnit, StorageUnit, UiMode } from './format'
 
 export interface Prefs {
   mode: UiMode
+  bgMode: BgMode
+  blur: number
   storage: StorageUnit
   net: NetUnit
   theme: MapTheme
 }
 
-const Ctx = createContext<Prefs>({ mode: 'dark', storage: 'auto', net: 'auto', theme: 'aurora' })
+const Ctx = createContext<Prefs>({ mode: 'dark', bgMode: 'solid', blur: 30, storage: 'auto', net: 'auto', theme: 'aurora' })
 
 export const PrefsProvider = Ctx.Provider
 export const usePrefs = (): Prefs => useContext(Ctx)
@@ -30,6 +32,12 @@ export const NET_LABELS: { key: NetUnit; label: string }[] = [
 export const MODE_LABELS: { key: UiMode; label: string }[] = [
   { key: 'dark', label: '暗色' },
   { key: 'light', label: '浅色' },
+]
+
+export const BG_LABELS: { key: BgMode; label: string }[] = [
+  { key: 'solid', label: '纯色' },
+  { key: 'aurora', label: '氛围光' },
+  { key: 'image', label: '自定义图片' },
 ]
 
 export interface ThemeOpt { key: MapTheme; label: string; swatch: string }

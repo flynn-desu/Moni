@@ -42,6 +42,9 @@ export namespace config {
 	    netUnit: string;
 	    mapTheme: string;
 	    uiTheme: string;
+	    bgMode: string;
+	    wallpaperPath: string;
+	    blur: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new Config(source);
@@ -55,6 +58,9 @@ export namespace config {
 	        this.netUnit = source["netUnit"];
 	        this.mapTheme = source["mapTheme"];
 	        this.uiTheme = source["uiTheme"];
+	        this.bgMode = source["bgMode"];
+	        this.wallpaperPath = source["wallpaperPath"];
+	        this.blur = source["blur"];
 	    }
 	}
 
