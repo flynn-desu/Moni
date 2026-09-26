@@ -142,7 +142,8 @@ export function Charts({ history }: { history: Point[] }) {
       <div className="charts-grid">
         <ChartCard title="CPU" color={ACC.cpu} display={latest ? latest.cpu.toFixed(1) + '%' : '-'}
           data={cpuData} yFmt={pctFmt} fixedRange={true} />
-        <ChartCard title="内存" color={ACC.mem} display={latest ? latest.memPercent.toFixed(1) + '%' : '-'}
+        <ChartCard title="内存" color={ACC.mem}
+          display={latest ? latest.memPercent.toFixed(1) + '% · ' + fmtStorage(latest.memUsed, prefs.storage) + ' / ' + fmtStorage(latest.memTotal, prefs.storage) : '-'}
           data={memData} yFmt={pctFmt} fixedRange={true} />
         <ChartCard title="GPU" color={ACC.gpu}
           display={latest ? (engine === '__all' ? latest.gpu.toFixed(1) : (latest.byEngine[engine] ?? 0).toFixed(1)) + '%' : '-'}
