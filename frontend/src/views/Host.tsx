@@ -66,7 +66,7 @@ export function Host() {
       <div className="host-sep" />
       <Row icon={<IconDevice />} variant="disk" label="设备"
         value={info.hostname || '—'}
-        metas={[{ k: '运行时', v: info.goVersion }]} />
+        metas={[{ k: '版本', v: info.appVersion }, { k: '运行时', v: info.goVersion }]} />
     </div>
   )
 }

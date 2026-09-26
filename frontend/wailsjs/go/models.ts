@@ -11,6 +11,7 @@ export namespace collector {
 	    gpuName: string;
 	    vramTotal: number;
 	    goVersion: string;
+	    appVersion: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new HostInfo(source);
@@ -28,6 +29,7 @@ export namespace collector {
 	        this.gpuName = source["gpuName"];
 	        this.vramTotal = source["vramTotal"];
 	        this.goVersion = source["goVersion"];
+	        this.appVersion = source["appVersion"];
 	    }
 	}
 

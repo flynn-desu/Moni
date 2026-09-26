@@ -178,6 +178,7 @@ function mockDriver(): Driver {
     gpuName: 'NVIDIA GeForce RTX 4060 Ti (Mock)',
     vramTotal: 16e9,
     goVersion: 'go1.27.1',
+    appVersion: 'v1.0.2',
   }
 
   return {

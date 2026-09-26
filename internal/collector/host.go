@@ -10,16 +10,17 @@ import (
 
 // HostInfo 静态主机信息（收集一次，前端"主机"页展示）。
 type HostInfo struct {
-	Hostname  string `json:"hostname"`
-	OS        string `json:"os"`
-	OSVersion string `json:"osVersion"`
-	Arch      string `json:"arch"`
-	CPUName   string `json:"cpuName"`
-	CPUCores  int    `json:"cpuCores"`
-	MemTotal  uint64 `json:"memTotal"`
-	GPUName   string `json:"gpuName"`
-	VramTotal uint64 `json:"vramTotal"`
-	GoVersion string `json:"goVersion"`
+	Hostname   string `json:"hostname"`
+	OS         string `json:"os"`
+	OSVersion  string `json:"osVersion"`
+	Arch       string `json:"arch"`
+	CPUName    string `json:"cpuName"`
+	CPUCores   int    `json:"cpuCores"`
+	MemTotal   uint64 `json:"memTotal"`
+	GPUName    string `json:"gpuName"`
+	VramTotal  uint64 `json:"vramTotal"`
+	GoVersion  string `json:"goVersion"`
+	AppVersion string `json:"appVersion"`
 }
 
 // GetHostInfo 收集主机静态信息；显卡名/显存总量来自已缓存的 gpuInfo。

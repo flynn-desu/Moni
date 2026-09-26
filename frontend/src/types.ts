@@ -57,6 +57,7 @@ export interface HostInfo {
   gpuName: string
   vramTotal: number
   goVersion: string
+  appVersion: string
 }
 
 export interface AppConfig {

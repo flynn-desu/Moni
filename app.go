@@ -12,6 +12,9 @@ import (
 	"Moni/internal/store"
 )
 
+// AppVersion 当前应用版本（发版时同步更新）。
+const AppVersion = "v1.0.2"
+
 // App Wails 应用：持有采集管理器、历史缓冲与设置，绑定给前端调用。
 type App struct {
 	ctx   context.Context
@@ -185,5 +188,7 @@ func (a *App) GetHostInfo() collector.HostInfo {
 	if a.mgr != nil {
 		gpuName, vram = a.mgr.GPUInfo()
 	}
-	return collector.GetHostInfo(gpuName, vram)
+	h := collector.GetHostInfo(gpuName, vram)
+	h.AppVersion = AppVersion
+	return h
 }
