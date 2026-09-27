@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { ProcessInfo } from '../types'
 import { aggOf, buildForest, type Agg, type Pin, type ProcNode, type SortKey } from '../tree'
 import { fmtNet, fmtStorage } from '../format'
@@ -187,6 +187,35 @@ export function ProcessTree({ processes, pins, onPins }: {
     else setPinSort({ key: k, asc: true })
   })
 
+  // 钉选行展开的子进程（递归）：钉选进程在 buildForest 里被摘出到 detached，
+  // 主列表不再渲染它，所以子进程只能在钉选卡里展开。排序跟随钉选卡当前状态
+  // （手动顺序时退回主列表排序）；展开状态与主列表共用 expanded。
+  const pinKidRows = (n: ProcNode, depth: number): ReactNode[] => {
+    const sk = pinSort ?? { key: sortKey, asc: sortAsc }
+    const sorted = [...n.kids].sort((x, y) =>
+      sk.asc ? x.agg[sk.key] - y.agg[sk.key] : y.agg[sk.key] - x.agg[sk.key])
+    return sorted.flatMap(k => {
+      const hasKids = k.kids.length > 0
+      const open = expanded.has(k.p.pid)
+      const row = (
+        <div key={k.p.pid} className="trow" style={{ height: ROW_H }}
+          onDoubleClick={() => hasKids && toggle(k.p.pid)}>
+          <div className="name" style={{ paddingLeft: depth * 18 }}>
+            <span className={'twisty' + (open ? ' open' : '') + (hasKids ? '' : ' leaf')}
+              onClick={() => hasKids && toggle(k.p.pid)}>▶</span>
+            <span className="pdot" style={{ background: hashColor(k.p.name) }} />
+            <span className="nm" title={`${k.p.name} (${k.p.pid})`}>{k.p.name}</span>
+            {hasKids && <span className="cnt">({k.kids.length})</span>}
+            <span className="pid">{k.p.pid}</span>
+          </div>
+          {vals(k.agg, pinSort?.key ?? null)}
+          <div className="acts" />
+        </div>
+      )
+      return open ? [row, ...pinKidRows(k, depth + 1)] : [row]
+    })
+  }
+
   return (
     <div className="view tree-panel">
       <div className="tree-toolbar glass">
@@ -217,28 +246,34 @@ export function ProcessTree({ processes, pins, onPins }: {
             <span>钉选 {pins.length} · 置顶显示</span>
             <span className="spacer" />
             <span className="hint">
-              {pinSort ? '已按列排序，▲▼ 可恢复手动顺序 · 点图钉取消' : '▲▼ 调整顺序 · 点列头可排序'}
+              {pinSort ? '已按列排序，▲▼ 可恢复手动顺序 · 点图钉取消' : '点击 ▸ 展开子进程 · ▲▼ 调整顺序 · 点列头可排序'}
             </span>
           </div>
           {pinHead}
           <div className="pin-body">
             {pinnedRows.map((pr, i) => pr.node ? (
-              <div key={pr.pin.pid} className="trow" style={{ height: ROW_H }}>
-                <div className="name">
-                  <span className="pdot" style={{ background: hashColor(pr.node.p.name) }} />
-                  <span className="nm" title={`${pr.node.p.name} (${pr.node.p.pid})`}>{pr.node.p.name}</span>
-                  {pr.node.kids.length > 0 && <span className="cnt">({pr.node.kids.length})</span>}
-                  <span className="pid">{pr.node.p.pid}</span>
+              <Fragment key={pr.pin.pid}>
+                <div className="trow" style={{ height: ROW_H }}
+                  onDoubleClick={() => pr.node!.kids.length > 0 && toggle(pr.pin.pid)}>
+                  <div className="name">
+                    <span className={'twisty' + (expanded.has(pr.pin.pid) ? ' open' : '') + (pr.node.kids.length > 0 ? '' : ' leaf')}
+                      onClick={() => pr.node!.kids.length > 0 && toggle(pr.pin.pid)}>▶</span>
+                    <span className="pdot" style={{ background: hashColor(pr.node.p.name) }} />
+                    <span className="nm" title={`${pr.node.p.name} (${pr.node.p.pid})`}>{pr.node.p.name}</span>
+                    {pr.node.kids.length > 0 && <span className="cnt">({pr.node.kids.length})</span>}
+                    <span className="pid">{pr.node.p.pid}</span>
+                  </div>
+                  {vals(pr.node.agg, pinSort?.key ?? null)}
+                  <div className="acts show">
+                    {!pinSort && <>
+                      <button className="pbtn" title="上移" disabled={i === 0} onClick={() => move(i, -1)}>▲</button>
+                      <button className="pbtn" title="下移" disabled={i === pins.length - 1} onClick={() => move(i, 1)}>▼</button>
+                    </>}
+                    <button className="pbtn on" title="取消钉选" onClick={() => unpin(pr.pin.pid)}><IconPin size={13} /></button>
+                  </div>
                 </div>
-                {vals(pr.node.agg, pinSort?.key ?? null)}
-                <div className="acts show">
-                  {!pinSort && <>
-                    <button className="pbtn" title="上移" disabled={i === 0} onClick={() => move(i, -1)}>▲</button>
-                    <button className="pbtn" title="下移" disabled={i === pins.length - 1} onClick={() => move(i, 1)}>▼</button>
-                  </>}
-                  <button className="pbtn on" title="取消钉选" onClick={() => unpin(pr.pin.pid)}><IconPin size={13} /></button>
-                </div>
-              </div>
+                {expanded.has(pr.pin.pid) && pinKidRows(pr.node, 1)}
+              </Fragment>
             ) : (
               <div key={pr.pin.pid} className="trow ghost" style={{ height: ROW_H }}>
                 <div className="name">
