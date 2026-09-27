@@ -14,7 +14,7 @@ import (
 )
 
 // AppVersion 当前应用版本（发版时同步更新）。
-const AppVersion = "v1.0.3"
+const AppVersion = "v1.0.4"
 
 // App Wails 应用：持有采集管理器、历史缓冲与设置，绑定给前端调用。
 type App struct {
