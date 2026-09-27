@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 581 196">
+  <title>Moni</title>
+  <g stroke="#646e92" stroke-width="32" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M24 174 V26 L90 134 L159 26 V174"/>
+    <path d="M406 174 V115 A44 44 0 0 1 494 115 V174"/>
+    <path d="M556 174 V71"/>
+  </g>
+  <circle cx="556" cy="23" r="17" fill="#646e92"/>
+  <circle cx="287.5" cy="127.5" r="72.5" fill="#646e92"/>
+  <g fill="none" stroke="#ffffff" stroke-width="11" stroke-linecap="round">
+    <path d="M300 115 Q316 98 332 111"/>
+    <path d="M262 138 Q287 160 314 137"/>
+  </g>
+  <circle cx="267" cy="112" r="13" fill="#ffffff"/>
+</svg>

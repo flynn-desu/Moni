@@ -11,6 +11,9 @@ export interface Driver {
   setUiTheme(mode: UiMode): Promise<void>
   setBgMode(mode: BgMode): Promise<void>
   setBlur(px: number): Promise<void>
+  setCloseAction(action: 'exit' | 'minimise'): Promise<void>
+  setGlass3d(on: boolean): Promise<void>
+  setShowLogo(on: boolean): Promise<void>
   selectWallpaper(): Promise<string>
   clearWallpaper(): Promise<void>
   getWallpaperData(): Promise<string>
@@ -35,6 +38,9 @@ function wailsDriver(): Driver {
     async setUiTheme(mode) { await (await bindings()).SetUiTheme(mode) },
     async setBgMode(mode) { await (await bindings()).SetBgMode(mode) },
     async setBlur(px) { await (await bindings()).SetBlur(px) },
+    async setCloseAction(action) { await (await bindings()).SetCloseAction(action) },
+    async setGlass3d(on) { await (await bindings()).SetGlass3D(on) },
+    async setShowLogo(on) { await (await bindings()).SetShowLogo(on) },
     async selectWallpaper() { return (await bindings()).SelectWallpaper() },
     async clearWallpaper() { await (await bindings()).ClearWallpaper() },
     async getWallpaperData() { return (await bindings()).GetWallpaperData() },
@@ -92,7 +98,7 @@ const MOCK_TREE: MockProc[] = (() => {
 function mockDriver(): Driver {
   let interval = 1000
   let throttled = false
-  const cfg: AppConfig = { intervalMs: 1000, alwaysOnTop: false, storageUnit: 'auto', netUnit: 'auto', mapTheme: 'aurora', uiTheme: 'dark', bgMode: 'solid', blur: 30 }
+  const cfg: AppConfig = { intervalMs: 1000, alwaysOnTop: false, storageUnit: 'auto', netUnit: 'auto', mapTheme: 'aurora', uiTheme: 'dark', bgMode: 'solid', blur: 30, closeAction: 'exit', glass3d: false, showLogo: true }
   const ring: Point[] = []
   let subs: ((s: Sample) => void)[] = []
   let timer: ReturnType<typeof setTimeout> | null = null
@@ -191,6 +197,9 @@ function mockDriver(): Driver {
     async setUiTheme(mode) { cfg.uiTheme = mode },
     async setBgMode(mode) { cfg.bgMode = mode },
     async setBlur(px) { cfg.blur = px },
+    async setCloseAction(a) { cfg.closeAction = a },
+    async setGlass3d(on) { cfg.glass3d = on },
+    async setShowLogo(on) { cfg.showLogo = on },
     async selectWallpaper() { return '' },
     async clearWallpaper() { cfg.bgMode = 'solid' },
     async getWallpaperData() { return '' },

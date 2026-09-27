@@ -20,9 +20,15 @@ export function SetBgMode(arg1:string):Promise<void>;
 
 export function SetBlur(arg1:number):Promise<void>;
 
+export function SetCloseAction(arg1:string):Promise<void>;
+
+export function SetGlass3D(arg1:boolean):Promise<void>;
+
 export function SetInterval(arg1:number):Promise<void>;
 
 export function SetMapTheme(arg1:string):Promise<void>;
+
+export function SetShowLogo(arg1:boolean):Promise<void>;
 
 export function SetThrottled(arg1:boolean):Promise<void>;
 

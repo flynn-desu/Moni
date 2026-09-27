@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>Moni</title>
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#e7eef5" stop-opacity="0.72"/>
+    </linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c4e6fa"/>
+      <stop offset="0.55" stop-color="#a9d9f6"/>
+      <stop offset="1" stop-color="#8ac2ec"/>
+    </linearGradient>
+    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4fafd"/>
+      <stop offset="1" stop-color="#dcf0fc"/>
+    </linearGradient>
+    <linearGradient id="foot" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b9e2f9"/>
+      <stop offset="1" stop-color="#97d0f3"/>
+    </linearGradient>
+    <linearGradient id="antenna" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#85b9e8"/>
+      <stop offset="0.35" stop-color="#c2e4fa"/>
+      <stop offset="1" stop-color="#a5d5f3"/>
+    </linearGradient>
+    <radialGradient id="eye" cx="0.35" cy="0.3" r="0.95">
+      <stop offset="0" stop-color="#79b0e8"/>
+      <stop offset="0.55" stop-color="#5f9de0"/>
+      <stop offset="1" stop-color="#5493da"/>
+    </radialGradient>
+    <radialGradient id="blush" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#f4c3d7" stop-opacity="0.9"/>
+      <stop offset="0.65" stop-color="#f4c3d7" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#f4c3d7" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="led" cx="0.35" cy="0.3" r="0.95">
+      <stop offset="0" stop-color="#cdf5ec"/>
+      <stop offset="0.6" stop-color="#93e3d4"/>
+      <stop offset="1" stop-color="#6fd2c0"/>
+    </radialGradient>
+    <clipPath id="scrClip"><rect x="140" y="200" width="232" height="150" rx="28"/></clipPath>
+    <filter id="tileShadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#7fa0bd" flood-opacity="0.32"/>
+    </filter>
+    <filter id="soft" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="5"/></filter>
+  </defs>
+
+  <!-- frosted glass tile -->
+  <rect x="44" y="44" width="424" height="424" rx="96" fill="url(#tile)" stroke="#c3d4e3" stroke-opacity="0.9" stroke-width="2.5" filter="url(#tileShadow)"/>
+  <rect x="50" y="50" width="412" height="412" rx="91" fill="none" stroke="#ffffff" stroke-opacity="0.95" stroke-width="3"/>
+  <path d="M136 76 Q256 56 376 76" fill="none" stroke="#ffffff" stroke-opacity="0.5" stroke-width="12" stroke-linecap="round" filter="url(#soft)"/>
+
+  <ellipse cx="256" cy="410" rx="105" ry="13" fill="#9db9d2" opacity="0.28" filter="url(#soft)"/>
+
+  <!-- antennae -->
+  <g transform="translate(209 142) rotate(-39)">
+    <rect x="-13" y="-54" width="26" height="108" rx="13" fill="url(#antenna)"/>
+    <rect x="-7.5" y="-44" width="4.5" height="84" rx="2.25" fill="#ffffff" opacity="0.35"/>
+  </g>
+  <g transform="translate(303 142) rotate(39)">
+    <rect x="-13" y="-54" width="26" height="108" rx="13" fill="url(#antenna)"/>
+    <rect x="-7.5" y="-44" width="4.5" height="84" rx="2.25" fill="#ffffff" opacity="0.3"/>
+  </g>
+
+  <!-- feet -->
+  <rect x="157" y="380" width="42" height="34" rx="15" fill="url(#foot)" stroke="#8cc0ea" stroke-opacity="0.55" stroke-width="1.5"/>
+  <rect x="313" y="380" width="42" height="34" rx="15" fill="url(#foot)" stroke="#8cc0ea" stroke-opacity="0.55" stroke-width="1.5"/>
+
+  <!-- tv body -->
+  <rect x="100" y="169" width="312" height="224" rx="44" fill="url(#body)" stroke="#85b9e4" stroke-opacity="0.7" stroke-width="2"/>
+  <rect x="106" y="175" width="300" height="212" rx="39" fill="none" stroke="#e8f5fd" stroke-opacity="0.9" stroke-width="3"/>
+  <rect x="109" y="177" width="294" height="104" rx="38" fill="url(#gloss)"/>
+
+  <!-- screen -->
+  <rect x="152" y="216" width="196" height="140" rx="28" fill="#6fa3d4" opacity="0.28" filter="url(#soft)"/>
+  <rect x="140" y="200" width="232" height="150" rx="28" fill="url(#screen)" stroke="#c6e5f8" stroke-width="2"/>
+  <g clip-path="url(#scrClip)">
+    <rect x="155" y="120" width="56" height="240" rx="26" transform="rotate(45 183 240)" fill="#ffffff" opacity="0.5"/>
+    <rect x="236" y="112" width="18" height="210" rx="9" transform="rotate(45 245 217)" fill="#ffffff" opacity="0.4"/>
+  </g>
+
+  <!-- face -->
+  <ellipse cx="161" cy="298" rx="17" ry="10.5" fill="url(#blush)"/>
+  <ellipse cx="351" cy="298" rx="17" ry="10.5" fill="url(#blush)"/>
+  <circle cx="196" cy="256" r="20" fill="url(#eye)"/>
+  <circle cx="190.5" cy="249" r="6.5" fill="#ffffff" opacity="0.95"/>
+  <circle cx="200.5" cy="260" r="2.5" fill="#ffffff" opacity="0.6"/>
+  <circle cx="316" cy="256" r="20" fill="url(#eye)"/>
+  <circle cx="310.5" cy="249" r="6.5" fill="#ffffff" opacity="0.95"/>
+  <circle cx="320.5" cy="260" r="2.5" fill="#ffffff" opacity="0.6"/>
+  <path d="M216 299 Q256 351 296 299" fill="none" stroke="#5f9fd9" stroke-width="13.5" stroke-linecap="round"/>
+
+  <!-- power led -->
+  <circle cx="388" cy="358" r="10.5" fill="url(#led)"/>
+  <circle cx="384.5" cy="354.5" r="3.2" fill="#ffffff" opacity="0.85"/>
+</svg>

@@ -12,7 +12,9 @@ import (
 
 // Config 当前设置。IntervalMs 合法值：500/1000/2000/5000。
 // StorageUnit: auto|MB|GB；NetUnit: auto|KB|MB|GB；MapTheme 见 MapThemes；UiTheme: dark|light；
-// BgMode: solid|aurora|image；Blur: 卡片毛玻璃模糊半径 0-40px。
+// BgMode: solid|aurora|image；Blur: 卡片毛玻璃模糊半径 0-40px；
+// CloseAction: 关闭按钮行为 exit(退出程序)|minimise(最小化到任务栏)；Glass3D: 玻璃卡片立体感增强；
+// ShowLogo: 左上角品牌 Logo 显示开关。
 type Config struct {
 	IntervalMs    int    `json:"intervalMs"`
 	AlwaysOnTop   bool   `json:"alwaysOnTop"`
@@ -23,6 +25,9 @@ type Config struct {
 	BgMode        string `json:"bgMode"`
 	WallpaperPath string `json:"wallpaperPath"`
 	Blur          int    `json:"blur"`
+	CloseAction   string `json:"closeAction"`
+	Glass3D       bool   `json:"glass3d"`
+	ShowLogo      bool   `json:"showLogo"`
 }
 
 // ValidIntervals 可选采集间隔（毫秒）。
@@ -34,6 +39,7 @@ var (
 	MapThemes         = []string{"aurora", "teal", "mono", "rainbow", "sunset", "candy"}
 	ValidUiThemes     = []string{"dark", "light"}
 	ValidBgModes      = []string{"solid", "aurora", "image"}
+	ValidCloseActions = []string{"exit", "minimise"}
 )
 
 func inList(v string, list []string) bool {
@@ -55,12 +61,15 @@ func Valid(ms int) bool {
 	return false
 }
 
-// ValidStorage / ValidNet / ValidTheme / ValidUiTheme / ValidBgMode 合法性检查。
+// ValidStorage / ValidNet / ValidTheme / ValidUiTheme / ValidBgMode / ValidCloseAction 合法性检查。
 func ValidStorage(s string) bool { return inList(s, ValidStorageUnits) }
 func ValidNet(s string) bool     { return inList(s, ValidNetUnits) }
 func ValidTheme(s string) bool   { return inList(s, MapThemes) }
 func ValidUiTheme(s string) bool { return inList(s, ValidUiThemes) }
 func ValidBgMode(s string) bool  { return inList(s, ValidBgModes) }
+func ValidCloseAction(s string) bool {
+	return inList(s, ValidCloseActions)
+}
 
 // defaults 填充缺省值。
 func (c *Config) defaults() {
@@ -79,6 +88,9 @@ func (c *Config) defaults() {
 	if c.BgMode == "" {
 		c.BgMode = "solid"
 	}
+	if c.CloseAction == "" {
+		c.CloseAction = "exit"
+	}
 	if c.Blur <= 0 || c.Blur > 40 {
 		c.Blur = 30
 	}
@@ -95,7 +107,8 @@ func path() (string, error) {
 
 // Load 读取配置；文件不存在或损坏时返回默认值。
 func Load() *Config {
-	c := &Config{IntervalMs: 1000, StorageUnit: "auto", NetUnit: "auto", MapTheme: "aurora", UiTheme: "dark", BgMode: "solid", Blur: 30}
+	// glass3d / showLogo 默认开启：用 *bool 区分「配置里未写」与「用户显式关闭」
+	c := &Config{IntervalMs: 1000, StorageUnit: "auto", NetUnit: "auto", MapTheme: "aurora", UiTheme: "dark", BgMode: "solid", Blur: 30, CloseAction: "exit", Glass3D: true, ShowLogo: true}
 	p, err := path()
 	if err != nil {
 		return c
@@ -104,7 +117,11 @@ func Load() *Config {
 	if err != nil {
 		return c
 	}
-	var disk Config
+	var disk struct {
+		Glass3D  *bool `json:"glass3d"`
+		ShowLogo *bool `json:"showLogo"`
+		Config
+	}
 	if json.Unmarshal(data, &disk) == nil && Valid(disk.IntervalMs) {
 		c.IntervalMs = disk.IntervalMs
 		c.AlwaysOnTop = disk.AlwaysOnTop
@@ -122,6 +139,15 @@ func Load() *Config {
 		}
 		if ValidBgMode(disk.BgMode) {
 			c.BgMode = disk.BgMode
+		}
+		if ValidCloseAction(disk.CloseAction) {
+			c.CloseAction = disk.CloseAction
+		}
+		if disk.Glass3D != nil {
+			c.Glass3D = *disk.Glass3D
+		}
+		if disk.ShowLogo != nil {
+			c.ShowLogo = *disk.ShowLogo
 		}
 		c.WallpaperPath = disk.WallpaperPath
 		if disk.Blur > 0 && disk.Blur <= 40 {

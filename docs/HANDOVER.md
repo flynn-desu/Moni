@@ -1,6 +1,6 @@
 # Moni 开发交接文档
 
-> 更新时间：2026-09-26 18:00 ｜ 状态：**v1.0.2 已发布**（GitHub Release），`main` 分支与远程同步，本地工作区干净
+> 更新时间：2026-09-27 ｜ 状态：**v1.0.3 已发布**（GitHub Release），`main` 分支与远程同步，本地工作区干净
 > 仓库：https://github.com/flynn-desu/Moni ｜ 配套阅读：[DESIGN.md](DESIGN.md)（需求与总体设计）
 
 ## 1. 项目概览
@@ -14,7 +14,7 @@
 | 设置 `internal/config` | %APPDATA%\Moni\config.json，字段见 §5 |
 | 前端 `frontend/src` | React+TS；`driver.ts` 检测 `window.go` 缺失时自动切 Mock（纯浏览器可调试全部视图）；`tree.ts` 组树聚合；视图：Dashboard/Charts/ProcessTree/Treemap/Host |
 
-当前进度：v1.0.0 首发 → v1.0.1（explorer 提升 / I/O 口径改名 / 暂停按钮）→ v1.0.2（背景三选 / 自定义壁纸 / 磨砂程度滑杆 / 内存数值显示 / 主机页版本号）。全部已发布。
+当前进度：v1.0.0 首发 → v1.0.1（explorer 提升 / I/O 口径改名 / 暂停按钮）→ v1.0.2（背景三选 / 自定义壁纸 / 磨砂程度滑杆 / 内存数值显示 / 主机页版本号）→ v1.0.3（PPID 环修复 / 进程搜索与钉选 / 无边框标题栏 / 关闭行为 / 单实例 / 立体感 / 设置分组搜索 / 烟熏玻璃底 / 新 Logo / 圆角窗口回退）。全部已发布。
 
 ## 2. 环境与常用命令
 
@@ -66,10 +66,18 @@ wails generate module   # 重新生成 frontend/wailsjs，并同步 frontend/src
 6. **进程采集走 `NtQuerySystemInformation(5)`**：一次拿全 名称/PPID/CPU时间/IO计数/工作集/私有工作集/提交，370 进程 5-8ms（gopsutil 要 30ms）。x64 结构体 256 字节（host 断言），见 process.go
 7. **进程"磁盘"列实为 IO 计数口径**：`IO_COUNTERS` 的写入字节含共享内存/管道等非磁盘写入（浏览器/GPU 进程严重虚高，曾让用户误以为每秒写盘 5MB）。普通权限拿不到 ETW 真磁盘口径 → UI 列名用「I/O」并注明。表头 tooltip 必须保留
 8. **进程树已剪掉 explorer.exe**（Windows shell，任务栏启动的应用都挂它下面）：其子进程提升到顶层展示，`tree.ts SHELL_PROCS` 可扩展
-9. **图标**：wails 只在 `build/windows/icon.ico` 缺失时从 `build/appicon.png` 重新生成 → **换图标必须先删 icon.ico**（已 gitignore）。图标源 = 根目录 `logo.png`（用户绘制），处理：居中裁方 → 1024×1024 → `build/appicon.png`
+9. **图标**：wails 只在 `build/windows/icon.ico` 缺失时从 `build/appicon.png` 重新生成 → **换图标必须先删 icon.ico**（已 gitignore）。图标源 = 根目录 `logo.jfif`（1024×405 横版，深底白字），appicon 由它垫底色居中成 1024 方形；标题栏 logo = `frontend/src/assets/logo.jpg`（同一素材，直接作为品牌位，不再重复渲染 "Moni" 文字）
 10. **长跑的 vite dev server 内存会持续增长**（HMR 状态累积，曾达 17GB 拖垮系统）——wails dev 用完记得关
 11. **WebView2 数据目录**在 `%APPDATA%\Moni.exe\EBWebView`（NSIS 卸载会删它）；应用配置在 `%APPDATA%\Moni\config.json`（升级/卸载均保留）
 12. **NSIS 安装器不自动关闭运行中的应用**：覆盖安装前需先退出 Moni，否则报"文件被占用"
+13. **⚠️ NtQSI 的 PPID 会形成环**：Windows 不清理死后父进程的 PPID，旧 pid 被复用后出现 `services→wininit→winlogon→svchost→services` 这类环（本机实测存在）。前端组树遇环会让整个环上分量（全部 svchost、pycharm/python 等约 230 进程）不可见。修复：后端 `process.go` 按创建时间剪"父比子年轻"的不可能边（Registry/Secure System 等 kernel 伪进程 ctime=0，不剪）；前端 `tree.ts` 兜底把不可达节点提升为根（跳过 SHELL_PROCS）。`harness -dump` 可复现排查
+14. **进程页钉选是会话级状态**（App.tsx `pins`，pid + 名字），不落 config.json；切换视图保留，应用重启丢失。pid 复用理论上可能钉错进程，钉选行进程退出显示幽灵行"已退出"。钉选卡有自己的排序状态（列头三态：降→升→恢复手动），与主列表排序互不影响；▲▼ 操作会退出排序模式回到手动顺序。搜索与树同口径：只显示最上层命中节点（祖先命中时子命中收起），值为聚合口径，PID 搜索可直达深层子进程
+15. **无边框窗口**：`main.go Frameless: true`；拖拽区 = `.topbar` 整条（`.app` 顶部内边距并入顶栏，贴着窗口上边缘也能拖）+ `.statusbar`；按钮/输入框通过 `--wails-draggable: no-drag` 排除（logo 图片可拖）。窗口控制走 `frontend/src/win.ts`（浏览器无 runtime 时静默降级）。注意 JS runtime **没有 WindowClose**，退出用 `Quit()`。`WindowIsMaximised` 无事件推送，靠 window resize 防抖刷新 □/还原 图标。**wails dev -browser 里别点关闭按钮（closeAction=exit 时会 Quit 掉整个 dev 进程）**
+16. **closeAction 配置**（exit|minimise，默认 exit）：config.json + `SetCloseAction` 绑定，设置弹窗"关闭按钮"行。改了 Go 绑定后已跑 `wails generate module` 并同步 types.ts/driver.ts
+17. **单实例锁**：`main.go` 的 `SingleInstanceLock`（UniqueId 固定）——第二次启动自动退出并由 `app.onSecondInstance` 把已有窗口还原置前。⚠️ 锁按 UniqueId 全局生效：**wails dev 与已启动的 Moni.exe 不能同时跑**，先关一个
+18. **窗口为直角**：试过「透明窗口（BackgroundColour A:0 + WebviewIsTransparent）+ .app 圆角裁切」的圆角方案，但边缘出现角状伪影且 topbar 拖拽失效，已回退为不透明 `BackgroundColour{10,12,20,1}`；`.aurora`/`.wallpaper` 保持 **fixed**。⚠️ fixed 壁纸（z-index:0）会盖住**普通静态内容**：`.topbar` 必须保留 `position: relative`（导航/控制按钮因 backdrop-filter 自带层叠上下文不受影响，logo 这类静态元素会消失）。Win10 没有系统圆角，除非换 Win11 或找到不破坏拖拽的实现，否则别再尝试
+19. **视图切换动画只有 transform**（`.view-in` keyframes 不能加 opacity）：opacity 动画会让动画期间的元素成为 backdrop root，glass 卡片的后模糊整个失效（"清晰→模糊"闪烁）
+20. **深色主题玻璃底是烟熏暗底**：`--glass-bg: rgba(8,12,22,0.52)`（--seg-bg/--status-bg/--pin-glass-bg 同思路）。最初是白提亮 rgba(255,255,255,0.055)，在明亮自定义壁纸上会把卡片"提亮"，浅色文字/曲线全部看不清——改成暗底后文字在任何壁纸下可读，别改回去
 
 ## 5. 发布流程（GitHub）
 
@@ -93,6 +101,8 @@ wails generate module   # 重新生成 frontend/wailsjs，并同步 frontend/src
 | bgMode | solid（默认，纯黑灰）/aurora/image |
 | wallpaperPath | 自定义壁纸落地路径（%APPDATA%\Moni\wallpaper.*） |
 | blur | 卡片毛玻璃半径 0-40px（CSS 变量 --blur） |
+| closeAction | 关闭按钮行为：exit（默认）/minimise |
+| glass3d | 玻璃卡片立体感增强，默认 false（body.glass3d 驱动，样式在 glass.css 末尾） |
 
 绑定方法（app.go）：GetConfig/SetInterval/SetThrottled/SetUnits/SetMapTheme/SetUiTheme/SetBgMode/SetBlur/SelectWallpaper/ClearWallpaper/GetWallpaperData/GetHistory/GetHostInfo。
 

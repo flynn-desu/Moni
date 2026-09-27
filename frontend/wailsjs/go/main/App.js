@@ -34,12 +34,24 @@ export function SetBlur(arg1) {
   return window['go']['main']['App']['SetBlur'](arg1);
 }
 
+export function SetCloseAction(arg1) {
+  return window['go']['main']['App']['SetCloseAction'](arg1);
+}
+
+export function SetGlass3D(arg1) {
+  return window['go']['main']['App']['SetGlass3D'](arg1);
+}
+
 export function SetInterval(arg1) {
   return window['go']['main']['App']['SetInterval'](arg1);
 }
 
 export function SetMapTheme(arg1) {
   return window['go']['main']['App']['SetMapTheme'](arg1);
+}
+
+export function SetShowLogo(arg1) {
+  return window['go']['main']['App']['SetShowLogo'](arg1);
 }
 
 export function SetThrottled(arg1) {

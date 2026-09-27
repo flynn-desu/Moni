@@ -101,7 +101,7 @@ export function Treemap({ processes, onTheme }: { processes: ProcessInfo[]; onTh
   const [hover, setHover] = useState<{ node: ProcNode; mx: number; my: number } | null>(null)
   const [, forceDraw] = useState(0)
 
-  const forest = useMemo(() => buildForest(processes), [processes])
+  const forest = useMemo(() => buildForest(processes).roots, [processes])
   const current = path.length > 0 ? path[path.length - 1].kids : forest
 
   const layout = useMemo(() => {

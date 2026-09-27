@@ -69,6 +69,9 @@ export interface AppConfig {
   uiTheme: UiMode
   bgMode: BgMode
   blur: number
+  closeAction: 'exit' | 'minimise' // 关闭按钮：退出程序 / 最小化到任务栏
+  glass3d: boolean                 // 玻璃卡片立体感增强
+  showLogo: boolean                // 左上角品牌 Logo 显示开关
 }
 
 // store.Point 历史聚合点
@@ -95,5 +98,3 @@ export interface Point {
   diskWriteBps: number
   diskActive: number
 }
-
-export interface AppConfig { intervalMs: number; alwaysOnTop: boolean }

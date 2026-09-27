@@ -47,6 +47,9 @@ export namespace config {
 	    bgMode: string;
 	    wallpaperPath: string;
 	    blur: number;
+	    closeAction: string;
+	    glass3d: boolean;
+	    showLogo: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new Config(source);
@@ -63,6 +66,9 @@ export namespace config {
 	        this.bgMode = source["bgMode"];
 	        this.wallpaperPath = source["wallpaperPath"];
 	        this.blur = source["blur"];
+	        this.closeAction = source["closeAction"];
+	        this.glass3d = source["glass3d"];
+	        this.showLogo = source["showLogo"];
 	    }
 	}
 

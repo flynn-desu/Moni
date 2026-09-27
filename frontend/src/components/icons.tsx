@@ -89,3 +89,55 @@ export function IconDevice(): ReactNode {
     </svg>
   )
 }
+
+// 图钉（进程钉选），size 可缩小用于行内按钮/角标
+export function IconPin({ size = 22 }: { size?: number }): ReactNode {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 3.5h6" />
+      <path d="M10 3.5v4.8L6.6 12.4a1.1 1.1 0 0 0 .95 1.6h8.9a1.1 1.1 0 0 0 .95-1.6L14 8.3V3.5" />
+      <path d="M12 14v6.5" />
+    </svg>
+  )
+}
+
+// ---- 自绘标题栏窗口控制按钮（实心小图形，置于彩色圆钮上） ----
+
+export function IconWinClose({ size = 14 }: { size?: number }): ReactNode {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth={3.4} strokeLinecap="round">
+      <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" />
+    </svg>
+  )
+}
+
+export function IconWinMin({ size = 14 }: { size?: number }): ReactNode {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth={3.4} strokeLinecap="round">
+      <path d="M5.5 12h13" />
+    </svg>
+  )
+}
+
+// 最大化：圆角方块轮廓
+export function IconWinMax({ size = 13 }: { size?: number }): ReactNode {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth={2.8} strokeLinejoin="round">
+      <rect x="5" y="5" width="14" height="14" rx="2.5" />
+    </svg>
+  )
+}
+
+// 向下还原：两个背向三角（参考图样式）
+export function IconWinRestore({ size = 13 }: { size?: number }): ReactNode {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="none">
+      <path d="M13.5 4L4 13.5h9.5V4z" />
+      <path d="M10.5 20L20 10.5h-9.5V20z" />
+    </svg>
+  )
+}

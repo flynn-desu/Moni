@@ -10,6 +10,16 @@ export const ACC = {
   vram: '#f0abfc', disk: '#fcd34d', net: '#7dd3fc',
 }
 
+// 主题感知色板：深色主题用粉彩（与 CSS --acc-* 一致），
+// 浅色主题换更深的同系色，避免曲线/数值在白玻璃上看不清
+function themeAcc(light: boolean) {
+  return light
+    ? { cpu: '#3b82f6', mem: '#8b5cf6', gpu: '#14b8a6', vram: '#d946ef',
+        disk: '#d97706', disk2: '#b45309', net: '#0284c7', net2: '#0369a1' }
+    : { cpu: '#7cc4ff', mem: '#b3a4ff', gpu: '#5eead4', vram: '#f0abfc',
+        disk: '#fcd34d', disk2: '#f59e0b', net: '#7dd3fc', net2: '#38bdf8' }
+}
+
 function rgba(hex: string, a: number): string {
   const n = parseInt(hex.slice(1), 16)
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`
@@ -99,6 +109,8 @@ function ChartCard({ title, color, color2, display, data, yFmt, fixedRange }: Ca
 
 export function Charts({ history }: { history: Point[] }) {
   const prefs = usePrefs()
+  const light = prefs.mode === 'light'
+  const acc = useMemo(() => themeAcc(light), [light])
   const [win, setWin] = useState<60 | 300>(60)
   const [engine, setEngine] = useState<string>('__all')
 
@@ -140,21 +152,21 @@ export function Charts({ history }: { history: Point[] }) {
         {latest && <span style={{ fontSize: 11.5, color: 'var(--txt-2)' }}>采样 {pts.length} 点</span>}
       </div>
       <div className="charts-grid">
-        <ChartCard title="CPU" color={ACC.cpu} display={latest ? latest.cpu.toFixed(1) + '%' : '-'}
+        <ChartCard title="CPU" color={acc.cpu} display={latest ? latest.cpu.toFixed(1) + '%' : '-'}
           data={cpuData} yFmt={pctFmt} fixedRange={true} />
-        <ChartCard title="内存" color={ACC.mem}
+        <ChartCard title="内存" color={acc.mem}
           display={latest ? latest.memPercent.toFixed(1) + '% · ' + fmtStorage(latest.memUsed, prefs.storage) + ' / ' + fmtStorage(latest.memTotal, prefs.storage) : '-'}
           data={memData} yFmt={pctFmt} fixedRange={true} />
-        <ChartCard title="GPU" color={ACC.gpu}
+        <ChartCard title="GPU" color={acc.gpu}
           display={latest ? (engine === '__all' ? latest.gpu.toFixed(1) : (latest.byEngine[engine] ?? 0).toFixed(1)) + '%' : '-'}
           data={gpuData} yFmt={pctFmt} fixedRange={true} />
-        <ChartCard key={'vram-' + prefs.storage} title="显存（专用）" color={ACC.vram}
+        <ChartCard key={'vram-' + prefs.storage} title="显存（专用）" color={acc.vram}
           display={latest ? fmtStorage(latest.vramDedUsed, prefs.storage) + ' / ' + fmtStorage(latest.vramDedTotal, prefs.storage) : '-'}
           data={vramData} yFmt={pctFmt} fixedRange={true} />
-        <ChartCard key={'disk-' + prefs.net} title="磁盘（读/写）" color={ACC.disk} color2="#f59e0b"
+        <ChartCard key={'disk-' + prefs.net} title="磁盘（读/写）" color={acc.disk} color2={acc.disk2}
           display={latest ? fmtNet(latest.diskReadBps + latest.diskWriteBps, prefs.net) : '-'}
           data={diskData} yFmt={(v: number) => fmtNetAxis(v, prefs.net)} fixedRange={false} />
-        <ChartCard key={'net-' + prefs.net} title="网络（收/发）" color={ACC.net} color2="#38bdf8"
+        <ChartCard key={'net-' + prefs.net} title="网络（收/发）" color={acc.net} color2={acc.net2}
           display={latest ? fmtNet(latest.netRecvBps, prefs.net) : '-'}
           data={netData} yFmt={(v: number) => fmtNetAxis(v, prefs.net)} fixedRange={false} />
       </div>

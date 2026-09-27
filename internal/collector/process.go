@@ -93,6 +93,21 @@ func (m *Manager) collectProcesses(s *Sample, dt time.Duration) {
 	next := make(map[int32]procPrevState, len(prev)+16)
 	cores := float64(runtime.NumCPU())
 
+	// 第一遍：解析原始条目并记录创建时间。
+	// Windows 不清理死后父进程的 PPID，旧 pid 被复用后会形成
+	// services→wininit→winlogon→svchost→services 这类环（本机实测存在），
+	// 前端按 PPID 组树时整个环上的分量（全部 svchost、pycharm/python 等
+	// 200+ 进程）会既不是根也挂不到根，直接从界面消失。
+	type rawProc struct {
+		pi     ProcessInfo
+		ctime  int64   // Unix 微秒；父进程必然早于子进程，反之为无效边
+		user   float64 // UserTime 秒
+		kernel float64 // KernelTime 秒
+		read   uint64  // IO 读字节累计
+		write  uint64  // IO 写字节累计
+	}
+	raws := make([]rawProc, 0, 384)
+	ctimes := make(map[int32]int64, 384)
 	for off := 0; off+256 <= len(buf); {
 		sp := (*systemProcessInformation)(unsafe.Pointer(&buf[off]))
 		if sp.NextEntryOffset == 0 {
@@ -115,12 +130,43 @@ func (m *Manager) collectProcesses(s *Sample, dt time.Duration) {
 		if pi.Name == "" {
 			pi.Name = "<受限>"
 		}
+		pi.MemWS = uint64(sp.WorkingSetSize)
+		pi.MemPrivate = uint64(sp.WorkingSetPrivateSize) // 任务管理器"内存"列口径
+		pi.MemCommit = uint64(sp.PrivatePageCount)
+		ct := int64(0)
+		if sp.CreateTime > 0 {
+			ct = (int64(sp.CreateTime) - 116444736000000000) / 10 // FILETIME 100ns → Unix µs
+		}
+		raws = append(raws, rawProc{
+			pi:     pi,
+			ctime:  ct,
+			user:   float64(sp.UserTime) * 1e-7, // 100ns → 秒
+			kernel: float64(sp.KernelTime) * 1e-7,
+			read:   uint64(sp.ReadTransferCount),
+			write:  uint64(sp.WriteTransferCount),
+		})
+		ctimes[pid] = ct
+	}
 
+	// 第二遍：剪掉"父进程比子进程晚创建"的不可能边（旧 PPID 指向被复用的 pid），
+	// 再做 CPU/IO 差分与 GPU 合并。
+	for _, raw := range raws {
+		pi := raw.pi
+		if pi.PPID == pi.PID {
+			pi.PPID = 0
+		} else if pi.PPID != 0 && raw.ctime > 0 {
+			// 仅当子进程创建时间已知时才剪：Registry 等 kernel 伪进程 ctime=0，不能据此断边
+			if pct, ok := ctimes[pi.PPID]; ok && pct > raw.ctime {
+				pi.PPID = 0 // 父进程比子进程"年轻"：pid 已被复用，边无效 → 提升为根
+			}
+		}
+
+		pid := pi.PID
 		var cur procPrevState
-		cur.user = float64(sp.UserTime) * 1e-7 // 100ns → 秒
-		cur.kernel = float64(sp.KernelTime) * 1e-7
-		cur.read = uint64(sp.ReadTransferCount)
-		cur.write = uint64(sp.WriteTransferCount)
+		cur.user = raw.user
+		cur.kernel = raw.kernel
+		cur.read = raw.read
+		cur.write = raw.write
 		if pv, ok := prev[pid]; ok && dts > 0 {
 			du := cur.user - pv.user
 			if du < 0 {
@@ -140,10 +186,6 @@ func (m *Manager) collectProcesses(s *Sample, dt time.Duration) {
 			}
 		}
 		next[pid] = cur
-
-		pi.MemWS = uint64(sp.WorkingSetSize)
-		pi.MemPrivate = uint64(sp.WorkingSetPrivateSize) // 任务管理器"内存"列口径
-		pi.MemCommit = uint64(sp.PrivatePageCount)
 
 		if pd, ok := m.pending[pid]; ok {
 			pi.GPUPercent = pd.gpu

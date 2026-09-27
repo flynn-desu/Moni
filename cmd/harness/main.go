@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strings"
 	"time"
 
 	"Moni/internal/collector"
@@ -31,14 +32,87 @@ func fmtBytes(v uint64) string {
 	return fmt.Sprintf("%.0fMB", float64(v)/1024/1024)
 }
 
+// dumpProcesses 打印一次完整进程清单与结构摘要（-dump 排查用）。
+func dumpProcesses(s *collector.Sample) {
+	fmt.Printf("== DUMP ==  总条目: %d\n", len(s.Processes))
+	byPid := make(map[int32]int, len(s.Processes))
+	var sumPrivate uint64
+	for _, p := range s.Processes {
+		byPid[p.PID]++
+		sumPrivate += p.MemPrivate
+	}
+	dupEntries := 0
+	dupPids := 0
+	for pid, c := range byPid {
+		if c > 1 {
+			dupEntries += c - 1
+			dupPids++
+			if dupPids <= 5 {
+				fmt.Printf("  重复 PID %d ×%d\n", pid, c)
+			}
+		}
+	}
+	fmt.Printf("唯一 PID: %d  重复 PID 数: %d  多余条目: %d\n", len(byPid), dupPids, dupEntries)
+
+	// 模拟前端组树：ppid 不在快照里（或为 0）→ 根
+	roots := 0
+	for _, p := range s.Processes {
+		if _, ok := byPid[p.PPID]; p.PPID != 0 && !ok {
+			roots++
+		}
+	}
+	fmt.Printf("前端组树根数(模拟): %d   全部进程私有内存合计: %s\n", roots, fmtBytes(sumPrivate))
+
+	byName := make(map[string]int)
+	for _, p := range s.Processes {
+		byName[p.Name]++
+	}
+	type nc struct { name string; n int }
+	ncs := make([]nc, 0, len(byName))
+	for k, v := range byName { ncs = append(ncs, nc{k, v}) }
+	sort.Slice(ncs, func(i, j int) bool { return ncs[i].n > ncs[j].n })
+	fmt.Println("按名称计数 TOP:")
+	for i, c := range ncs {
+		if i >= 15 { break }
+		fmt.Printf("  %-28s ×%d\n", c.name, c.n)
+	}
+	for _, p := range s.Processes {
+		if strings.Contains(strings.ToLower(p.Name), "python") || strings.Contains(strings.ToLower(p.Name), "pycharm") {
+			fmt.Printf("PY: pid=%-6d ppid=%-6d priv=%-9s commit=%-9s ws=%-9s cpu=%.1f%% vram=%s\n",
+				p.PID, p.PPID, fmtBytes(p.MemPrivate), fmtBytes(p.MemCommit), fmtBytes(p.MemWS), p.CPUNorm, fmtBytes(p.VramDedicated))
+		}
+	}
+	byMem := make([]collector.ProcessInfo, len(s.Processes))
+	copy(byMem, s.Processes)
+	sort.Slice(byMem, func(i, j int) bool { return byMem[i].MemPrivate > byMem[j].MemPrivate })
+	fmt.Println("私有内存 TOP12:")
+	for i := 0; i < 12 && i < len(byMem); i++ {
+		p := byMem[i]
+		fmt.Printf("  %-28s pid=%-6d ppid=%-6d priv=%-9s commit=%-9s\n",
+			p.Name, p.PID, p.PPID, fmtBytes(p.MemPrivate), fmtBytes(p.MemCommit))
+	}
+	fmt.Println("全量清单 (pid ppid priv commit name):")
+	for _, p := range s.Processes {
+		fmt.Printf("%d %d %d %d %s\n", p.PID, p.PPID, p.MemPrivate, p.MemCommit, p.Name)
+	}
+}
+
 func main() {
 	interval := flag.Duration("i", time.Second, "采集间隔")
 	n := flag.Int("n", 10, "采样轮数后退出")
+	dump := flag.Bool("dump", false, "打印一次完整进程清单与结构摘要后退出")
 	flag.Parse()
 
 	tick := 0
 	mgr, err := collector.NewManager(*interval, func(s *collector.Sample) {
 		tick++
+		if *dump {
+			if !s.Warmup {
+				dumpProcesses(s)
+				os.Exit(0)
+			}
+			return
+		}
 		fmt.Printf("\n=== tick %d  ts=%d  采集耗时 %.1fms (warmup=%v) ===\n",
 			tick, s.Ts, s.CostMs, s.Warmup)
 		fmt.Printf("CPU: %5.1f%% (%d核)   内存: %s/%s (%.1f%%)   提交: %s/%s\n",

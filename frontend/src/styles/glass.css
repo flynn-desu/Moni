@@ -11,19 +11,20 @@
   --txt: rgba(255, 255, 255, 0.95);
   --txt-1: rgba(255, 255, 255, 0.62);
   --txt-2: rgba(255, 255, 255, 0.36);
-  --glass-bg: rgba(255, 255, 255, 0.055);
+  /* 深色烟熏玻璃底：深色主题下卡片自带暗色调，明亮壁纸/氛围光被压暗，浅色文字始终可读 */
+  --glass-bg: rgba(8, 12, 22, 0.52);
   --stroke: rgba(255, 255, 255, 0.09);
   --ring-weak: rgba(255, 255, 255, 0.07);
   --glass-hl: rgba(255, 255, 255, 0.16);
   --spec-a: rgba(255, 255, 255, 0.085);
   --spec-b: rgba(255, 255, 255, 0.02);
   --panel-shadow: 0 20px 50px rgba(0, 0, 0, 0.42);
-  --seg-bg: rgba(255, 255, 255, 0.055);
+  --seg-bg: rgba(8, 12, 22, 0.35);
   --hover: rgba(255, 255, 255, 0.07);
   --row-hover: rgba(255, 255, 255, 0.05);
   --bar-track: rgba(255, 255, 255, 0.07);
   --gauge-track: rgba(255, 255, 255, 0.08);
-  --status-bg: rgba(255, 255, 255, 0.04);
+  --status-bg: rgba(8, 12, 22, 0.35);
   --mask-bg: rgba(4, 6, 12, 0.45);
   --tip-bg: rgba(18, 22, 34, 0.75);
   --pop-bg: rgba(20, 24, 36, 0.9);
@@ -46,7 +47,7 @@
   --ico-disk: #fcd34d; --ico-disk-bg: rgba(252, 211, 77, 0.13);
   --ico-net: #7dd3fc;  --ico-net-bg: rgba(125, 211, 252, 0.13);
   --blur: 30px;
-  --wallpaper-dim: rgba(5, 7, 13, 0.62);
+  --wallpaper-dim: rgba(5, 7, 13, 0.28);
   --r-lg: 26px;
   --r-md: 16px;
   --r-sm: 10px;
@@ -92,7 +93,7 @@ body.light {
   --ico-vram: #c026d3; --ico-vram-bg: rgba(192, 38, 211, 0.12);
   --ico-disk: #b45309; --ico-disk-bg: rgba(180, 83, 9, 0.12);
   --ico-net: #0369a1;  --ico-net-bg: rgba(3, 105, 161, 0.12);
-  --wallpaper-dim: rgba(238, 241, 247, 0.5);
+  --wallpaper-dim: rgba(238, 241, 247, 0.14);
 }
 
 * { box-sizing: border-box; }
@@ -121,11 +122,22 @@ body {
   content: ""; position: absolute; inset: 0;
   background: var(--wallpaper-dim);
 }
-/* 磨砂程度滑杆 */
+/* 磨砂程度：滑杆 + ±1 步进按钮 */
 input[type="range"].slider {
   width: 190px; accent-color: #34d399; cursor: pointer;
   background: transparent;
 }
+.blur-ctl { display: flex; align-items: center; gap: 9px; }
+.stepbtn {
+  width: 24px; height: 24px; border-radius: 50%; border: 0; cursor: pointer;
+  padding: 0; display: grid; place-items: center;
+  color: var(--txt-1); background: var(--seg-bg);
+  box-shadow: inset 0 0 0 1px var(--ring-weak), inset 0 1px 0 var(--glass-hl);
+  font-size: 13px; line-height: 1; font-family: inherit;
+  transition: all 0.18s var(--ease);
+}
+.stepbtn:hover { color: var(--txt); background: var(--hover); }
+.stepbtn:active { transform: translateY(1px); }
 
 /* ---- 环境光：让玻璃有可折射、可反射的内容 ---- */
 .aurora { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
@@ -174,22 +186,32 @@ input[type="range"].slider {
   position: relative; z-index: 1;
   height: 100%;
   display: flex; flex-direction: column;
-  padding: 16px 20px 10px;
+  padding: 0 20px 10px; /* 顶部内边距并入 .topbar：整条顶边都是拖拽区 */
   gap: 12px;
 }
-.topbar { display: flex; align-items: center; gap: 16px; flex: none; }
-.brand {
-  display: flex; align-items: baseline; gap: 8px;
-  font-size: 17px; font-weight: 700; letter-spacing: 0.3px;
+.topbar {
+  display: flex; align-items: center; gap: 16px; flex: none;
+  padding-top: 16px;
+  position: relative; /* 压在 fixed 壁纸之上（静态内容会被 z-index:0 的壁纸盖住） */
+  /* 无边框窗口：顶栏整条（含按钮之间空白）都是拖拽区，交互元素单独排除 */
+  --wails-draggable: drag;
 }
-.brand small { font-size: 11px; font-weight: 400; color: var(--txt-2); letter-spacing: 0.6px; }
+.topbar :is(button, input) { --wails-draggable: no-drag; }
+.brand-logo {
+  flex: none; height: 24px; width: auto; border-radius: 7px;
+  user-select: none; -webkit-user-drag: none;
+  /* logo 底片是深色的：外描边+投影让它贴在深色壁纸/浅色主题上都有清晰轮廓 */
+  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.30), 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+body.light .brand-logo { box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.95), 0 2px 8px rgba(31, 45, 80, 0.35); }
 .spacer { flex: 1; }
 .main { flex: 1; min-height: 0; min-width: 0; }
 .view { height: 100%; min-width: 0; }
 /* 视图切换动画：key 重挂载时淡入上浮 */
 .view-anim { height: 100%; min-width: 0; animation: view-in 0.38s var(--ease); }
 @keyframes view-in {
-  from { opacity: 0; transform: translateY(12px) scale(0.992); }
+  /* 仅 transform：opacity 动画会让 glass 卡片在动画期间丢失后模糊（清晰→模糊的元凶） */
+  from { transform: translateY(10px) scale(0.994); }
 }
 /* 图标配色（主题感知） */
 .ico-cpu { color: var(--ico-cpu); background: var(--ico-cpu-bg); }
@@ -204,9 +226,13 @@ input[type="range"].slider {
   padding: 5px 14px;
   font-size: 11.5px; color: var(--txt-2);
   border-radius: 999px;
+  position: relative;
   background: var(--status-bg);
-  box-shadow: inset 0 0 0 1px var(--ring-weak);
+  backdrop-filter: blur(var(--blur)) saturate(1.6);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(1.6);
+  box-shadow: inset 0 0 0 1px var(--ring-weak), inset 0 1px 0 var(--glass-hl), 0 4px 14px rgba(0, 0, 0, 0.16);
   width: fit-content;
+  --wails-draggable: drag; /* 底部状态栏无按钮，也可拖动窗口 */
 }
 .statusbar b { color: var(--txt-1); font-weight: 600; }
 .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 8px #4ade80; }
@@ -247,6 +273,41 @@ body.light .seg button.on {
   display: grid; place-items: center;
 }
 .iconbtn:hover { color: var(--txt); background: var(--hover); transform: translateY(-1px); }
+
+/* ---- 自绘窗口控制（无边框标题栏）：参考图的彩色圆钮语言 ---- */
+.win-controls {
+  flex: none;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 8px; border-radius: 999px;
+  background: var(--seg-bg);
+  box-shadow: inset 0 0 0 1px var(--ring-weak), inset 0 1px 0 var(--glass-hl);
+  backdrop-filter: blur(var(--blur)) saturate(1.6);
+}
+.winbtn {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 0; cursor: pointer; padding: 0;
+  display: grid; place-items: center;
+  background: var(--winbtn-bg); color: var(--winbtn-fg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: all 0.2s var(--ease);
+}
+.winbtn:hover { transform: translateY(-1px); filter: brightness(1.07); box-shadow: 0 4px 11px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.35); }
+.winbtn:active { transform: translateY(0); filter: brightness(0.96); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3); }
+.winbtn.min   { --winbtn-bg: var(--winbtn-min-bg);   --winbtn-fg: var(--winbtn-min-fg); }
+.winbtn.max   { --winbtn-bg: var(--winbtn-max-bg);   --winbtn-fg: var(--winbtn-max-fg); }
+.winbtn.close { --winbtn-bg: var(--winbtn-close-bg); --winbtn-fg: var(--winbtn-close-fg); }
+/* 深色主题：饱和稍收的红/黄/绿，深色图形保持参考图的对比方式 */
+:root {
+  --winbtn-close-bg: #ef8a80; --winbtn-close-fg: #43120b;
+  --winbtn-min-bg: #ecc06a;  --winbtn-min-fg: #43300a;
+  --winbtn-max-bg: #85cf90;  --winbtn-max-fg: #0f3a1c;
+}
+/* 浅色主题：按参考图的高明度粉彩圆钮 */
+body.light {
+  --winbtn-close-bg: #ff9c93; --winbtn-close-fg: #9c2013;
+  --winbtn-min-bg: #ffd27e;  --winbtn-min-fg: #7a5200;
+  --winbtn-max-bg: #a6e3ae;  --winbtn-max-fg: #175d2c;
+}
 
 /* ---- 芯片（引擎/指标选择） ---- */
 .chips { display: inline-flex; gap: 6px; flex-wrap: wrap; }
@@ -339,17 +400,81 @@ body.light .gauge-num b { text-shadow: none; }
 .charts-grid > * { min-width: 0; }
 .chart-card { display: flex; flex-direction: column; padding: 12px 14px 8px; min-height: 0; min-width: 0; }
 .chart-head { display: flex; align-items: baseline; gap: 10px; flex: none; }
-.chart-title { font-size: 12px; font-weight: 600; color: var(--txt-1); letter-spacing: 0.4px; }
+.chart-title { font-size: 12px; font-weight: 600; color: var(--txt); letter-spacing: 0.4px; }
 .chart-val { font-size: 15px; font-weight: 600; }
 .chart-body { flex: 1; min-height: 0; position: relative; }
 .chart-body > div { position: absolute; inset: 0; }
 
-/* ---- 进程树 ---- */
-.tree-panel { height: 100%; display: flex; flex-direction: column; overflow: hidden; }
-.tree-toolbar { display: flex; align-items: center; gap: 10px; padding: 12px 16px 8px; flex: none; }
+/* ---- 进程树：工具条药丸 / 钉选卡 / 主列表卡 三层 ---- */
+.tree-panel { height: 100%; display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
+.tree-toolbar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 16px; flex: none;
+  border-radius: 999px;
+}
+.tt-title { font-size: 12.5px; font-weight: 600; color: var(--txt-1); }
+.tt-sub { font-size: 11px; color: var(--txt-2); }
+.tt-warn { font-size: 11px; color: #fbbf24; }
+.tt-hint { font-size: 11px; color: var(--txt-2); }
+.tsearch { position: relative; display: flex; align-items: center; flex: none; }
+.tsearch-ico { position: absolute; left: 11px; color: var(--txt-2); pointer-events: none; }
+.tsearch input {
+  border: 0; outline: none; font-family: inherit; font-size: 12px;
+  color: var(--txt); background: var(--seg-bg);
+  box-shadow: inset 0 0 0 1px var(--ring-weak);
+  border-radius: 999px; padding: 5px 26px 5px 28px; width: 185px;
+  transition: all 0.25s var(--ease);
+}
+.tsearch input:focus { box-shadow: inset 0 0 0 1px var(--glass-hl); width: 225px; }
+.tsearch input::placeholder { color: var(--txt-2); }
+.tclear {
+  position: absolute; right: 5px; border: 0; cursor: pointer; padding: 0;
+  width: 16px; height: 16px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 9px;
+  color: var(--txt-2); background: transparent;
+  transition: all 0.18s var(--ease);
+}
+.tclear:hover { color: var(--txt); background: var(--hover); }
+/* 卡片圆角收一些：宽幅列表卡用 16px，避免行内容贴近大圆角被裁 */
+.tree-card {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column; overflow: hidden;
+  border-radius: var(--r-md);
+}
+/* 钉选卡：更亮一档的玻璃底 + 更亮的高光描边，比主列表"浮"起一层 */
+.tree-card.pinned {
+  flex: none;
+  background: var(--pin-glass-bg);
+  box-shadow:
+    inset 0 0 0 1px var(--pin-stroke),
+    inset 0 1px 0 var(--glass-hl),
+    0 26px 56px rgba(0, 0, 0, 0.55),
+    0 10px 26px rgba(0, 0, 0, 0.4);
+}
+:root {
+  --pin-glass-bg: linear-gradient(180deg, rgba(18, 24, 38, 0.62), rgba(8, 12, 22, 0.45) 42%, rgba(8, 12, 22, 0.40));
+  --pin-stroke: rgba(255, 255, 255, 0.17);
+}
+body.light {
+  --pin-glass-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.66), rgba(255, 255, 255, 0.52) 42%, rgba(255, 255, 255, 0.46));
+  --pin-stroke: rgba(255, 255, 255, 0.95);
+}
+/* 浅色下卡片间隙由投影叠加变灰：收小列表卡投影，让缝隙接近外部背景 */
+body.light .tree-card { --panel-shadow: 0 10px 24px rgba(31, 45, 80, 0.09); }
+body.light .tree-card.pinned {
+  box-shadow:
+    inset 0 0 0 1px var(--pin-stroke),
+    inset 0 1px 0 var(--glass-hl),
+    0 14px 30px rgba(31, 45, 80, 0.1),
+    0 4px 10px rgba(31, 45, 80, 0.07);
+}
+.pin-cap { display: flex; align-items: center; gap: 6px; padding: 9px 16px 0; font-size: 11px; color: var(--txt-1); flex: none; }
+.pin-cap svg { color: var(--acc-mem); flex: none; }
+.pin-cap .hint { font-size: 10.5px; color: var(--txt-2); }
+.pin-body { max-height: 38vh; overflow-y: auto; padding: 4px 0 6px; flex: none; }
 .tree-head {
   display: grid;
-  grid-template-columns: minmax(240px, 1fr) 90px 110px 80px 100px 130px;
+  grid-template-columns: minmax(240px, 1fr) 90px 110px 80px 100px 130px 54px;
   gap: 8px; padding: 6px 16px;
   font-size: 11px; color: var(--txt-2);
   border-bottom: 1px solid var(--sep-grad);
@@ -362,7 +487,7 @@ body.light .gauge-num b { text-shadow: none; }
 .tree-body { flex: 1; overflow-y: auto; overflow-x: hidden; position: relative; }
 .trow {
   display: grid;
-  grid-template-columns: minmax(240px, 1fr) 90px 110px 80px 100px 130px;
+  grid-template-columns: minmax(240px, 1fr) 90px 110px 80px 100px 130px 54px;
   gap: 8px; align-items: center;
   padding: 0 16px;
   font-size: 12.5px;
@@ -370,12 +495,26 @@ body.light .gauge-num b { text-shadow: none; }
   position: relative;
 }
 .trow:hover { background: var(--row-hover); }
+.trow.ghost { opacity: 0.5; }
+.trow .acts { display: flex; gap: 2px; justify-content: flex-end; opacity: 0; transition: opacity 0.18s var(--ease); }
+.trow:hover .acts, .trow .acts.show { opacity: 1; }
+.pbtn {
+  border: 0; cursor: pointer; padding: 0;
+  width: 20px; height: 20px; border-radius: 6px;
+  display: grid; place-items: center;
+  color: var(--txt-2); background: transparent; font-size: 8px;
+  transition: all 0.18s var(--ease);
+}
+.pbtn:hover { color: var(--txt); background: var(--hover); }
+.pbtn:disabled { opacity: 0.3; cursor: default; background: transparent; color: var(--txt-2); }
+.pbtn.on { color: var(--acc-mem); }
 .trow .name { display: flex; align-items: center; gap: 7px; min-width: 0; }
 .trow .name .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .trow .name .pid { color: var(--txt-2); font-size: 10.5px; flex: none; }
 .trow .cnt { color: var(--txt-2); font-size: 10.5px; margin-left: 4px; }
 .trow .num { text-align: right; color: var(--txt-1); position: relative; }
 .trow .num .bar { position: absolute; right: 0; bottom: -1px; width: 72px; opacity: 0.5; }
+.t-none { position: absolute; inset: 0; display: grid; place-items: center; color: var(--txt-2); font-size: 12.5px; }
 .pdot { width: 8px; height: 8px; border-radius: 3px; flex: none; }
 .twisty {
   width: 14px; height: 14px; flex: none;
@@ -385,6 +524,47 @@ body.light .gauge-num b { text-shadow: none; }
 }
 .twisty.open { transform: rotate(90deg); }
 .twisty.leaf { visibility: hidden; }
+
+/* ---- 立体感（设置可开关，body.glass3d）：厚边高光 + 折射描边 + 玻璃厚度阴影 ---- */
+body.glass3d .glass {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    inset 0 1px 1px rgba(255, 255, 255, 0.22),
+    inset 0 10px 24px rgba(255, 255, 255, 0.035),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.28),
+    inset 0 -16px 28px rgba(0, 0, 0, 0.22),
+    var(--panel-shadow);
+}
+body.glass3d .tree-card.pinned {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    inset 0 1px 1px rgba(255, 255, 255, 0.30),
+    inset 0 10px 24px rgba(255, 255, 255, 0.04),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.30),
+    inset 0 -16px 28px rgba(0, 0, 0, 0.24),
+    0 26px 56px rgba(0, 0, 0, 0.55),
+    0 10px 26px rgba(0, 0, 0, 0.4);
+}
+/* 浅色主题：白色玻璃 + 冰蓝折射描边（参考玻璃图标质感） */
+body.light.glass3d .glass {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.95),
+    inset 0 0 0 2px rgba(150, 200, 235, 0.30),
+    inset 0 2px 3px rgba(255, 255, 255, 0.95),
+    inset 0 -1px 2px rgba(110, 150, 190, 0.20),
+    inset 0 -18px 30px rgba(130, 165, 200, 0.16),
+    var(--panel-shadow);
+}
+body.light.glass3d .tree-card.pinned {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.95),
+    inset 0 0 0 2px rgba(150, 200, 235, 0.38),
+    inset 0 2px 3px rgba(255, 255, 255, 0.95),
+    inset 0 -1px 2px rgba(110, 150, 190, 0.22),
+    inset 0 -18px 30px rgba(130, 165, 200, 0.18),
+    0 14px 30px rgba(31, 45, 80, 0.12),
+    0 4px 10px rgba(31, 45, 80, 0.07);
+}
 
 /* ---- 树图 ---- */
 .map-panel { height: 100%; overflow: hidden; }
@@ -462,13 +642,37 @@ body.light .gauge-num b { text-shadow: none; }
 .modal-mask {
   position: fixed; inset: 0; z-index: 10;
   background: var(--mask-bg);
-  backdrop-filter: blur(6px);
+  /* 跟随磨砂程度设置（默认 30px 时为 6px），拖动滑杆时在设置页即可见反馈 */
+  backdrop-filter: blur(calc(var(--blur) / 5));
   display: grid; place-items: center;
 }
 .modal {
   width: 480px; padding: 22px 24px;
   animation: pop 0.35s var(--ease);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
 }
+/* 设置弹窗：搜索 + 分组 */
+.set-search { margin: 2px 0 12px; }
+.set-search input { width: 100%; }
+.set-search input:focus { width: 100%; }
+.set-group .set-sec {
+  font-size: 11px; font-weight: 600; color: var(--txt-2);
+  letter-spacing: 1.5px; margin: 0 0 2px;
+}
+.set-group:first-of-type .set-sec { margin-top: 4px; }
+/* 分组之间：渐隐分割线 */
+.set-group + .set-group {
+  margin-top: 18px;
+  padding-top: 14px;
+  position: relative;
+}
+.set-group + .set-group::before {
+  content: "";
+  position: absolute; left: 0; right: 0; top: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--sep-grad) 12%, var(--sep-grad) 88%, transparent);
+}
+.set-none { padding: 26px 0; text-align: center; color: var(--txt-2); font-size: 12.5px; }
 @keyframes pop { from { transform: scale(0.92) translateY(10px); opacity: 0; } }
 .modal h3 { margin: 0 0 4px; font-size: 15px; }
 .modal .sub { font-size: 11.5px; color: var(--txt-2); margin-bottom: 16px; }

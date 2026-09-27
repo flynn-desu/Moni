@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
 	"Moni/internal/collector"
@@ -13,7 +14,7 @@ import (
 )
 
 // AppVersion 当前应用版本（发版时同步更新）。
-const AppVersion = "v1.0.2"
+const AppVersion = "v1.0.3"
 
 // App Wails 应用：持有采集管理器、历史缓冲与设置，绑定给前端调用。
 type App struct {
@@ -42,6 +43,16 @@ func (a *App) startup(ctx context.Context) {
 	}
 	a.mgr = mgr
 	mgr.Start()
+}
+
+// onSecondInstance 已有实例运行时再次启动（SingleInstanceLock）：
+// 新进程会自行退出，这里把已有窗口还原并置前。
+func (a *App) onSecondInstance(data options.SecondInstanceData) {
+	if a.ctx == nil {
+		return
+	}
+	runtime.WindowUnminimise(a.ctx)
+	runtime.WindowShow(a.ctx)
 }
 
 // shutdown 停止采集线程。
@@ -128,6 +139,27 @@ func (a *App) SetBgMode(mode string) {
 		return
 	}
 	a.cfg.BgMode = mode
+	a.cfg.Save()
+}
+
+// SetCloseAction 设置关闭按钮行为（exit=退出程序|minimise=最小化到任务栏）并持久化。
+func (a *App) SetCloseAction(action string) {
+	if !config.ValidCloseAction(action) {
+		return
+	}
+	a.cfg.CloseAction = action
+	a.cfg.Save()
+}
+
+// SetGlass3D 开关玻璃卡片的立体感增强并持久化。
+func (a *App) SetGlass3D(on bool) {
+	a.cfg.Glass3D = on
+	a.cfg.Save()
+}
+
+// SetShowLogo 开关左上角品牌 Logo 并持久化。
+func (a *App) SetShowLogo(on bool) {
+	a.cfg.ShowLogo = on
 	a.cfg.Save()
 }
 
