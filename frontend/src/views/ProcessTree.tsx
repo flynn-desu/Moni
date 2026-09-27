@@ -219,10 +219,11 @@ export function ProcessTree({ processes, pins, onPins }: {
   return (
     <div className="view tree-panel">
       <div className="tree-toolbar glass">
-        <span className="tt-title">进程</span>
-        <span className="tt-sub">{dataSource.length} 个进程 · {q ? `匹配 ${rows.length}` : `显示 ${rows.length} 行`}</span>
-        {paused && <span className="tt-warn">⏸ 已暂停 · 数据已冻结</span>}
-        <span className="spacer" />
+        <div className="tt-side left">
+          <span className="tt-title">进程</span>
+          <span className="tt-sub">{dataSource.length} 个进程 · {q ? `匹配 ${rows.length}` : `显示 ${rows.length} 行`}</span>
+          {paused && <span className="tt-warn">⏸ 已暂停 · 数据已冻结</span>}
+        </div>
         <div className="tsearch">
           <svg className="tsearch-ico" width={12} height={12} viewBox="0 0 24 24" fill="none"
             stroke="currentColor" strokeWidth={2.2} strokeLinecap="round">
@@ -233,10 +234,12 @@ export function ProcessTree({ processes, pins, onPins }: {
             spellCheck={false} />
           {query && <button className="tclear" title="清除" onClick={() => setQuery('')}>✕</button>}
         </div>
-        <span className="tt-hint">点击 ▸ 展开子进程 · 悬停行图钉可置顶</span>
-        <button className={'chip' + (paused ? ' on' : '')} onClick={togglePause} title="冻结当前列表，方便查看某个进程">
-          {paused ? '▶ 继续' : '⏸ 暂停'}
-        </button>
+        <div className="tt-side right">
+          <span className="tt-hint">点击 ▸ 展开子进程 · 悬停行图钉可置顶</span>
+          <button className={'chip' + (paused ? ' on' : '')} onClick={togglePause} title="冻结当前列表，方便查看某个进程">
+            {paused ? '▶ 继续' : '⏸ 暂停'}
+          </button>
+        </div>
       </div>
 
       {pins.length > 0 && (

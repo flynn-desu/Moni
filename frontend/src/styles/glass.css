@@ -408,12 +408,16 @@ body.light .gauge-num b { text-shadow: none; }
 /* ---- 进程树：工具条药丸 / 钉选卡 / 主列表卡 三层 ---- */
 .tree-panel { height: 100%; display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
 .tree-toolbar {
-  display: flex; align-items: center; gap: 10px;
+  /* 三栏 grid：搜索框始终在药丸正中，左（标题/计数/暂停提示）右（提示/暂停键）两端对齐 */
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px;
   padding: 9px 16px; flex: none;
   border-radius: 999px;
 }
+.tt-side { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.tt-side.left { justify-self: start; }
+.tt-side.right { justify-self: end; }
 .tt-title { font-size: 12.5px; font-weight: 600; color: var(--txt-1); }
-.tt-sub { font-size: 11px; color: var(--txt-2); }
+.tt-sub { font-size: 11px; color: var(--txt-2); white-space: nowrap; }
 .tt-warn { font-size: 11px; color: #fbbf24; }
 .tt-hint { font-size: 11px; color: var(--txt-2); }
 .tsearch { position: relative; display: flex; align-items: center; flex: none; }
@@ -441,6 +445,9 @@ body.light .gauge-num b { text-shadow: none; }
   display: flex; flex-direction: column; overflow: hidden;
   border-radius: var(--r-md);
 }
+/* 树页卡片间隙要透出壁纸：深色下也收小外投影（默认 --panel-shadow 50px 大模糊
+   会在 10px 缝隙里叠成灰膜），只留贴边的紧凑接触阴影 */
+.tree-toolbar, .tree-card { --panel-shadow: 0 6px 16px rgba(0, 0, 0, 0.32); }
 /* 钉选卡：更亮一档的玻璃底 + 更亮的高光描边，比主列表"浮"起一层 */
 .tree-card.pinned {
   flex: none;
@@ -448,8 +455,7 @@ body.light .gauge-num b { text-shadow: none; }
   box-shadow:
     inset 0 0 0 1px var(--pin-stroke),
     inset 0 1px 0 var(--glass-hl),
-    0 26px 56px rgba(0, 0, 0, 0.55),
-    0 10px 26px rgba(0, 0, 0, 0.4);
+    0 10px 22px rgba(0, 0, 0, 0.36);
 }
 :root {
   --pin-glass-bg: linear-gradient(180deg, rgba(18, 24, 38, 0.62), rgba(8, 12, 22, 0.45) 42%, rgba(8, 12, 22, 0.40));
@@ -460,6 +466,7 @@ body.light {
   --pin-stroke: rgba(255, 255, 255, 0.95);
 }
 /* 浅色下卡片间隙由投影叠加变灰：收小列表卡投影，让缝隙接近外部背景 */
+body.light .tree-toolbar { --panel-shadow: 0 6px 16px rgba(31, 45, 80, 0.10); }
 body.light .tree-card { --panel-shadow: 0 10px 24px rgba(31, 45, 80, 0.09); }
 body.light .tree-card.pinned {
   box-shadow:
@@ -542,8 +549,7 @@ body.glass3d .tree-card.pinned {
     inset 0 10px 24px rgba(255, 255, 255, 0.04),
     inset 0 -1px 1px rgba(0, 0, 0, 0.30),
     inset 0 -16px 28px rgba(0, 0, 0, 0.24),
-    0 26px 56px rgba(0, 0, 0, 0.55),
-    0 10px 26px rgba(0, 0, 0, 0.4);
+    0 10px 22px rgba(0, 0, 0, 0.36);
 }
 /* 浅色主题：白色玻璃 + 冰蓝折射描边（参考玻璃图标质感） */
 body.light.glass3d .glass {
